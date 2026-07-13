@@ -173,8 +173,8 @@ const Hero = () => {
 
       {/* Navbar */}
       <nav
-        className={`fixed top-0 left-0 right-0 z-[60] flex items-center justify-between px-6 md:px-12 py-5 transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
-          isScrolled ? 'bg-[#05070d]/70 backdrop-blur-md border-b border-white/5' : ''
+        className={`fixed top-0 left-0 right-0 z-[60] flex items-center justify-between px-6 md:px-12 py-5 border-b transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          isScrolled ? 'bg-[#05070d]/70 backdrop-blur-md border-white/5' : 'border-transparent'
         } ${isBootDismissed ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'} motion-reduce:transition-none motion-reduce:opacity-100`}
         style={{ transitionDelay: isBootDismissed ? '100ms' : '0ms' }}
       >
