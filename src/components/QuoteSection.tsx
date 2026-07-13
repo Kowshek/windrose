@@ -1,4 +1,6 @@
 import { useEffect, useRef } from 'react';
+import gsap from 'gsap';
+import ScrollTrigger from 'gsap/ScrollTrigger';
 
 const clamp = (min: number, max: number, val: number) => Math.max(min, Math.min(max, val));
 const lerp = (start: number, end: number, factor: number) => start + (end - start) * factor;
@@ -12,6 +14,8 @@ const QuoteSection = () => {
   const horizonRef = useRef<HTMLDivElement>(null);
   const leftGlowRef = useRef<HTMLDivElement>(null);
   const rightGlowRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLParagraphElement>(null);
+  const authorRef = useRef<HTMLParagraphElement>(null);
 
   const current = useRef({
     horizonY: 120,
@@ -67,16 +71,53 @@ const QuoteSection = () => {
 
     animate();
 
-    return () => cancelAnimationFrame(animationFrameId);
+    gsap.registerPlugin(ScrollTrigger);
+    const mm = gsap.matchMedia();
+
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
+      if (!sectionRef.current || !textRef.current || !authorRef.current) return;
+      
+      const words = textRef.current.querySelectorAll('.quote-word');
+      
+      const tl = gsap.timeline({
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: "top 75%",
+          end: "bottom 60%",
+          scrub: true,
+        }
+      });
+      
+      gsap.set(words, { opacity: 0.15 });
+      
+      tl.to(words, {
+        opacity: 1,
+        stagger: 0.1,
+        ease: 'none'
+      })
+      .fromTo(authorRef.current, 
+        { opacity: 0 }, 
+        { opacity: 1, ease: 'none' }, 
+        ">"
+      );
+    });
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      mm.revert();
+    };
   }, []);
+
+  const quoteText = "Every item shows its sourcing, its confidence, and the indicators behind the call: a transparent scoring system with published criteria. The method is the product. No black box.";
+  const quoteWords = quoteText.split(' ');
 
   return (
     <section
       id="method"
       ref={sectionRef}
-      className="relative w-full h-screen overflow-hidden flex items-center justify-center px-6"
+      className="relative w-full overflow-hidden flex items-center justify-center px-6 py-32 md:py-48"
       style={{
-        background: 'linear-gradient(to bottom, #05070d 0%, #010A17 15%, #04182B 45%, #0A2E4A 78%, #0E3350 100%)'
+        background: 'linear-gradient(to bottom, #05070d 0%, #04182B 40%, #0A2E4A 75%, #0E3350 100%)'
       }}
     >
       {/* Horizon glow (parallax, replaces the old rainbow image) */}
@@ -117,11 +158,15 @@ const QuoteSection = () => {
 
       {/* Quote Content */}
       <div className="relative z-20 max-w-4xl text-center">
-        <p className="font-instrument text-white text-xl sm:text-2xl md:text-4xl lg:text-[42px] leading-[1.45] md:leading-[1.5]">
-          &ldquo;Every item shows its sourcing, its confidence, and the indicators behind the call — a transparent scoring system with published criteria. The method is the product. No black box.&rdquo;
+        <p ref={textRef} className="font-instrument text-white text-xl sm:text-2xl md:text-4xl lg:text-[42px] leading-[1.45] md:leading-[1.5] flex flex-wrap justify-center gap-y-2">
+          <span className="quote-word inline-block mr-[0.25em]">&ldquo;</span>
+          {quoteWords.map((word, i) => (
+            <span key={i} className="quote-word inline-block mr-[0.25em]">{word}</span>
+          ))}
+          <span className="quote-word inline-block">&rdquo;</span>
         </p>
-        <p className="font-inter mt-6 md:mt-8 text-white/80 text-sm md:text-base tracking-wide">
-          The Windrose method — published, scored, and open to challenge
+        <p ref={authorRef} className="font-inter mt-6 md:mt-8 text-white/80 text-sm md:text-base tracking-wide">
+          The Windrose method: published, scored, and open to challenge
         </p>
       </div>
     </section>

@@ -1,4 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import gsap from 'gsap';
+import ScrollTrigger from 'gsap/ScrollTrigger';
+import { initMagnetic } from '../lib/hover';
 
 const ROLES = ['Student', 'Analyst', 'Journalist', 'Faculty', 'Other'];
 
@@ -6,6 +9,40 @@ const Waitlist = () => {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState(ROLES[0]);
   const [submitted, setSubmitted] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    let cleanupBtn = () => {};
+    if (btnRef.current) cleanupBtn = initMagnetic(btnRef.current);
+
+    gsap.registerPlugin(ScrollTrigger);
+    const mm = gsap.matchMedia();
+
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
+      if (!containerRef.current) return;
+      
+      gsap.fromTo(containerRef.current,
+        { opacity: 0, y: 28, scale: 0.97 },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.9,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: containerRef.current,
+            start: "top 85%",
+          }
+        }
+      );
+    });
+
+    return () => {
+      mm.revert();
+      cleanupBtn();
+    };
+  }, []);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -22,19 +59,19 @@ const Waitlist = () => {
         className="absolute inset-x-0 top-0 h-40 pointer-events-none"
         style={{ background: 'linear-gradient(to bottom, #0E3350 0%, #05070d 100%)' }}
       />
-      <div className="w-full max-w-xl flex flex-col items-center text-center relative pt-40 md:pt-48">
+      <div ref={containerRef} className="w-full max-w-xl flex flex-col items-center text-center relative pt-40 md:pt-48">
         <h2 className="font-instrument text-3xl md:text-5xl text-white">
           Be reading it <span className="italic">at launch</span>
         </h2>
         <p className="font-inter text-white/60 text-sm md:text-base mt-5 leading-relaxed">
-          Join the waitlist and the Daily Brief arrives the day we open. No spam — a short launch sequence and then the brief itself.
+          Join the waitlist and the Daily Brief arrives the day we open. No spam: a short launch sequence and then the brief itself.
         </p>
 
         {submitted ? (
           <div className="liquid-glass rounded-2xl px-8 py-10 mt-10 w-full">
             <p className="font-instrument text-white text-2xl">You&rsquo;re on the list.</p>
             <p className="font-inter text-white/60 text-sm mt-3">
-              Watch your inbox — the first note explains what arrives, and when.
+              Watch your inbox: the first note explains what arrives and when.
             </p>
           </div>
         ) : (
@@ -46,13 +83,13 @@ const Waitlist = () => {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               aria-label="Email address"
-              className="w-full bg-white/5 border border-white/15 rounded-full px-6 py-3.5 text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors"
+              className="w-full bg-white/5 border border-white/15 rounded-full px-6 py-3.5 text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-white/40 focus:shadow-[0_0_20px_rgba(255,255,255,0.08)] transition-all"
             />
             <select
               value={role}
               onChange={(e) => setRole(e.target.value)}
               aria-label="I am a"
-              className="w-full bg-white/5 border border-white/15 rounded-full px-6 py-3.5 text-white text-sm focus:outline-none focus:border-white/40 transition-colors appearance-none cursor-pointer"
+              className="w-full bg-white/5 border border-white/15 rounded-full px-6 py-3.5 text-white text-sm focus:outline-none focus:border-white/40 focus:shadow-[0_0_20px_rgba(255,255,255,0.08)] transition-all appearance-none cursor-pointer"
             >
               {ROLES.map((r) => (
                 <option key={r} value={r} className="bg-[#0a0a0c] text-white">
@@ -61,6 +98,7 @@ const Waitlist = () => {
               ))}
             </select>
             <button
+              ref={btnRef}
               type="submit"
               className="w-full bg-white text-black px-8 py-3.5 rounded-full font-medium text-sm tracking-wide hover:bg-white/90 transition-all duration-300 button-glow"
             >

@@ -12,6 +12,7 @@ import Footer from '../components/Footer';
 
 const Landing = () => {
   useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
     initSmoothScroll();
     
     // Scroll progress hairline

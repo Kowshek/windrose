@@ -11,7 +11,7 @@ const Footer = () => {
         </p>
 
         <p className="font-inter text-white/30 text-xs leading-relaxed max-w-2xl">
-          We collect your email only to send the brief and launch updates — never shared, never sold, unsubscribe anytime.
+          We collect your email only to send the brief and launch updates, never shared, never sold, unsubscribe anytime.
         </p>
 
         <p className="font-inter text-white/20 text-xs mt-4">

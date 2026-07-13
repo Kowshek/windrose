@@ -1,10 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
+import gsap from 'gsap';
+import ScrollTrigger from 'gsap/ScrollTrigger';
+import { initCardGlow } from '../lib/hover';
 
 const BriefPreview = () => {
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const articleRef = useRef<HTMLElement>(null);
+  const indicatorRef = useRef<HTMLSpanElement>(null);
+  const blocksRef = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
+    let cleanupCard = () => {};
+    if (articleRef.current) {
+      cleanupCard = initCardGlow(articleRef.current);
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -15,7 +26,51 @@ const BriefPreview = () => {
       { threshold: 0.15 }
     );
     if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
+
+    gsap.registerPlugin(ScrollTrigger);
+    const mm = gsap.matchMedia();
+
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
+      if (indicatorRef.current) {
+        gsap.to(indicatorRef.current, {
+          opacity: 1,
+          duration: 1.5,
+          yoyo: true,
+          repeat: -1,
+          ease: "power1.inOut"
+        });
+      }
+
+      blocksRef.current.forEach((block) => {
+        if (!block) return;
+        const label = block.querySelector('.block-label');
+        const body = block.querySelector('.block-body');
+
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: block,
+            start: "top 80%",
+            end: "top 60%",
+            scrub: true,
+          }
+        });
+
+        tl.fromTo(label, 
+          { letterSpacing: '0.5em', opacity: 0 },
+          { letterSpacing: '0.25em', opacity: 1, ease: 'none', duration: 0.5 }
+        ).fromTo(body,
+          { opacity: 0, y: 10 },
+          { opacity: 1, y: 0, ease: 'none', duration: 0.5 },
+          "<0.2"
+        );
+      });
+    });
+
+    return () => {
+      observer.disconnect();
+      mm.revert();
+      cleanupCard();
+    };
   }, []);
 
   const blocks = [
@@ -51,6 +106,7 @@ const BriefPreview = () => {
         </p>
 
         <article
+          ref={articleRef}
           className={`liquid-glass rounded-2xl p-8 md:p-12 mt-12 w-full transition-all duration-[900ms] motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0 ${
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-[28px]'
           }`}
@@ -58,8 +114,8 @@ const BriefPreview = () => {
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <span className="font-inter text-white/40 text-xs tracking-wide">Daily Brief · 12 July 2026</span>
-            <span className="font-inter text-[11px] tracking-wide text-white/70 border border-white/15 rounded-full px-3 py-1">
-              Indicator: border friction — elevated
+            <span ref={indicatorRef} className="font-inter text-[11px] tracking-wide text-white/70 border border-white/15 rounded-full px-3 py-1 opacity-70">
+              Indicator: border friction (elevated)
             </span>
           </div>
 
@@ -68,19 +124,19 @@ const BriefPreview = () => {
           </h3>
 
           <div className="mt-8 space-y-7">
-            {blocks.map((b) => (
-              <div key={b.label}>
-                <div className="font-inter text-white/40 text-[11px] tracking-[0.25em] font-semibold uppercase">
+            {blocks.map((b, index) => (
+              <div key={b.label} ref={(el) => { blocksRef.current[index] = el; }}>
+                <div className="block-label font-inter text-white/40 text-[11px] font-semibold uppercase">
                   {b.label}
                 </div>
-                <p className="font-inter text-white/75 text-sm leading-relaxed mt-2">{b.body}</p>
+                <p className="block-body font-inter text-white/75 text-sm leading-relaxed mt-2">{b.body}</p>
               </div>
             ))}
           </div>
 
           <div className="border-t border-white/10 mt-8 pt-5">
             <p className="font-inter text-white/35 text-xs leading-relaxed">
-              Sources: PAP · Polish MSWiA statement · Belta (state media) — corroboration: two independent, one state.
+              Sources: PAP · Polish MSWiA statement · Belta (state media); corroboration: two independent, one state.
             </p>
           </div>
         </article>

@@ -1,16 +1,34 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { scrollToTarget } from '../lib/scroll';
+import { initMagnetic } from '../lib/hover';
+import gsap from 'gsap';
+import ScrollTrigger from 'gsap/ScrollTrigger';
 
 const Button = ({ children, className = '', href }: { children: React.ReactNode; className?: string, href?: string }) => {
+  const btnRef = useRef<HTMLAnchorElement | HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (btnRef.current) {
+      return initMagnetic(btnRef.current);
+    }
+  }, []);
+
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (href?.startsWith('#')) {
+      e.preventDefault();
+      scrollToTarget(href);
+    }
+  };
+
   if (href) {
     return (
-      <a href={href} className={`inline-block bg-white text-black px-8 py-3.5 rounded-full font-medium text-sm tracking-wide hover:bg-white/90 transition-all duration-300 button-glow ${className}`}>
+      <a ref={btnRef as React.RefObject<HTMLAnchorElement>} href={href} onClick={handleClick} className={`inline-block bg-white text-black px-8 py-3.5 rounded-full font-medium text-sm tracking-wide hover:bg-white/90 transition-all duration-300 button-glow ${className}`}>
         {children}
       </a>
     );
   }
   return (
-    <button className={`bg-white text-black px-8 py-3.5 rounded-full font-medium text-sm tracking-wide hover:bg-white/90 transition-all duration-300 button-glow ${className}`}>
+    <button ref={btnRef as React.RefObject<HTMLButtonElement>} className={`bg-white text-black px-8 py-3.5 rounded-full font-medium text-sm tracking-wide hover:bg-white/90 transition-all duration-300 button-glow ${className}`}>
       {children}
     </button>
   );
@@ -18,27 +36,69 @@ const Button = ({ children, className = '', href }: { children: React.ReactNode;
 
 const Hero = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
 
-  // Close mobile menu on resize
+  const sectionRef = useRef<HTMLElement>(null);
+  const videoWrapperRef = useRef<HTMLDivElement>(null);
+  const centerContentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
+    const mm = gsap.matchMedia();
+
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
+      if (!sectionRef.current || !videoWrapperRef.current || !centerContentRef.current) return;
+
+      gsap.to(centerContentRef.current, {
+        y: -80,
+        opacity: 0,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: 'top top',
+          end: 'bottom 40%',
+          scrub: true,
+        }
+      });
+
+      gsap.to(videoWrapperRef.current, {
+        scale: 1.06,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: 'top top',
+          end: 'bottom top',
+          scrub: true,
+        }
+      });
+    });
+
+    return () => mm.revert();
+  }, []);
+
+  // Close mobile menu on resize and handle scroll state
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 768 && isMenuOpen) {
         setIsMenuOpen(false);
       }
     };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [isMenuOpen]);
+    
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 40);
+    };
 
-  // Frost the navbar once the hero is left behind (nav is fixed and otherwise
-  // transparent — without this, page content scrolls straight through the links)
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // Initial check
+    handleScroll();
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [isMenuOpen]);
 
   const navLinks = [
     { label: 'Why Windrose', href: '#beats' },
@@ -54,10 +114,11 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative w-full h-screen overflow-hidden">
+    <section ref={sectionRef} className="relative w-full h-screen overflow-hidden">
       {/* Background Video */}
       <div
-        className="absolute inset-0 w-full h-full overflow-hidden"
+        ref={videoWrapperRef}
+        className="absolute inset-0 w-full h-full overflow-hidden origin-center"
         style={{ background: 'linear-gradient(180deg, #05070d 0%, #081527 55%, #0b2740 100%)' }}
       >
         <video
@@ -81,7 +142,7 @@ const Hero = () => {
       {/* Navbar */}
       <nav
         className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-12 py-5 transition-all duration-500 ${
-          scrolled ? 'bg-[#05070d]/70 backdrop-blur-md border-b border-white/5' : ''
+          isScrolled ? 'bg-[#05070d]/70 backdrop-blur-md border-b border-white/5' : ''
         }`}
       >
         <div className="font-instrument italic text-white text-2xl md:text-3xl">Windrose</div>
@@ -93,9 +154,10 @@ const Hero = () => {
               key={link.label}
               href={link.href}
               onClick={(e) => handleSmoothScroll(e, link.href)}
-              className="text-white/80 hover:text-white text-sm tracking-wide transition-colors font-inter"
+              className="group relative text-white/80 hover:text-white text-sm tracking-wide transition-colors font-inter py-1"
             >
               {link.label}
+              <span className="absolute left-0 bottom-0 w-full h-[1px] bg-white scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]" />
             </a>
           ))}
         </div>
@@ -175,19 +237,19 @@ const Hero = () => {
       </div>
 
       {/* Center Content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center -mt-[120px] px-4 pointer-events-none z-10">
+      <div ref={centerContentRef} className="absolute inset-0 flex flex-col items-center justify-center -mt-[120px] px-4 pointer-events-none z-10">
         <h1 className="font-instrument text-white text-[36px] md:text-7xl lg:text-[110px] leading-[0.9] tracking-tight text-center text-glow">
           See what's coming.<br />
           <span className="italic">Not just what broke.</span>
         </h1>
         <p className="font-inter text-white/70 text-sm md:text-base text-center mt-5 md:mt-7 max-w-xl">
-          Analyst-grade monitoring of Europe — triaged, assessed, and sourced by a published methodology, at a price a student can pay.
+          Analyst-grade monitoring of Europe, triaged, assessed, and sourced by a published methodology, at a price a student can pay.
         </p>
         <div className="pointer-events-auto flex flex-col md:flex-row items-center gap-4 mt-6 md:mt-9">
-          <a href="#waitlist" onClick={(e) => handleSmoothScroll(e, '#waitlist')} className="bg-white text-black px-8 py-3.5 rounded-full font-medium text-sm tracking-wide hover:bg-white/90 transition-all duration-300 button-glow text-center w-full md:w-auto">
-            For individuals — join the waitlist
-          </a>
-          <a href="#universities" onClick={(e) => handleSmoothScroll(e, '#universities')} className="liquid-glass text-white px-8 py-3.5 rounded-full font-medium text-sm tracking-wide hover:bg-white/10 transition-all duration-300 text-center w-full md:w-auto">
+          <Button href="#waitlist" className="w-full md:w-auto text-center">
+            For individuals, join the waitlist
+          </Button>
+          <a ref={(el) => { if (el) initMagnetic(el); }} href="#universities" onClick={(e) => handleSmoothScroll(e, '#universities')} className="liquid-glass text-white px-8 py-3.5 rounded-full font-medium text-sm tracking-wide hover:bg-white/10 transition-colors text-center w-full md:w-auto">
             For universities
           </a>
         </div>

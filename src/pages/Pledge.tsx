@@ -1,7 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { initCardGlow, initMagnetic } from '../lib/hover';
 
 const Pledge = () => {
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    let cleanupCard = () => {};
+    let cleanupBtn = () => {};
+
+    if (cardRef.current) cleanupCard = initCardGlow(cardRef.current);
+    if (btnRef.current) cleanupBtn = initMagnetic(btnRef.current);
+
+    return () => {
+      cleanupCard();
+      cleanupBtn();
+    };
+  }, [isSubmitted]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -41,9 +57,9 @@ const Pledge = () => {
         </h1>
 
         {/* Liquid-glass Card */}
-        <div className="liquid-glass rounded-2xl p-8 md:p-10 w-full flex flex-col gap-6 text-left">
+        <div ref={cardRef} className="liquid-glass rounded-2xl p-8 md:p-10 w-full flex flex-col gap-6 text-left">
           <div className="text-white/40 text-xs tracking-[0.3em] uppercase">
-            Founding tier — first 50 members
+            Founding tier, first 50 members
           </div>
           
           <div className="flex flex-col sm:flex-row sm:items-baseline gap-2">
@@ -52,11 +68,11 @@ const Pledge = () => {
           </div>
 
           <p className="font-inter text-white/60 text-sm leading-relaxed">
-            Roughly 40% off the launch annual price — locked for life. Daily Brief, weekly assessment, events calendar, and the published methodology, from day one.
+            Roughly 40% off the launch annual price, locked for life. Daily Brief, weekly assessment, events calendar, and the published methodology, from day one.
           </p>
 
           <p className="font-inter text-white/35 text-xs leading-relaxed">
-            Founding pricing, confirmed at launch. Reserving costs nothing now — no card, no charge until the product is live.
+            Founding pricing, confirmed at launch. Reserving costs nothing now, with no card or charge until the product is live.
           </p>
 
           {isSubmitted ? (
@@ -73,9 +89,10 @@ const Pledge = () => {
                 name="email"
                 required
                 placeholder="you@example.com"
-                className="w-full bg-white/5 border border-white/15 rounded-full px-6 py-3.5 text-white text-sm focus:outline-none focus:border-white/40 transition-colors"
+                className="w-full bg-white/5 border border-white/15 rounded-full px-6 py-3.5 text-white text-sm focus:outline-none focus:border-white/40 focus:shadow-[0_0_20px_rgba(255,255,255,0.08)] transition-all"
               />
               <button
+                ref={btnRef}
                 type="submit"
                 className="w-full bg-white text-black px-8 py-3.5 rounded-full font-medium text-sm tracking-wide hover:bg-white/90 transition-all duration-300 button-glow"
               >
