@@ -111,17 +111,17 @@ const Hero = () => {
         setIsMenuOpen(false);
       }
     };
-    
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 40);
     };
 
     window.addEventListener('resize', handleResize);
     window.addEventListener('scroll', handleScroll, { passive: true });
-    
+
     // Initial check
     handleScroll();
-    
+
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('scroll', handleScroll);
@@ -163,8 +163,8 @@ const Hero = () => {
             (e.target as HTMLVideoElement).style.display = 'none';
           }}
         >
-          <source src="/hero.mp4" type="video/mp4" />
-          <source src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260613_180732_a54afbf6-b30d-470e-861f-669871f09f67.mp4" type="video/mp4" />
+          {/* <source src="/hero.mp4" type="video/mp4" /> */}
+          <source src="https://res.cloudinary.com/vewxyxqu/video/upload/v1783964499/hero_capgqo.mp4" type="video/mp4" />
         </video>
       </div>
 
@@ -173,9 +173,8 @@ const Hero = () => {
 
       {/* Navbar */}
       <nav
-        className={`fixed top-0 left-0 right-0 z-[60] flex items-center justify-between px-6 md:px-12 py-5 border-b transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
-          isScrolled ? 'bg-[#05070d]/70 backdrop-blur-md border-white/5' : 'border-transparent'
-        } ${isBootDismissed ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'} motion-reduce:transition-none motion-reduce:opacity-100`}
+        className={`fixed top-0 left-0 right-0 z-[60] flex items-center justify-between px-6 md:px-12 py-5 border-b transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isScrolled ? 'bg-[#05070d]/70 backdrop-blur-md border-white/5' : 'border-transparent'
+          } ${isBootDismissed ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'} motion-reduce:transition-none motion-reduce:opacity-100`}
         style={{ transitionDelay: isBootDismissed ? '100ms' : '0ms' }}
       >
         <div className="font-instrument italic text-white text-2xl md:text-3xl">Windrose</div>
@@ -235,9 +234,8 @@ const Hero = () => {
 
       {/* Mobile Menu Panel */}
       <div
-        className={`fixed top-0 right-0 bottom-0 z-[55] w-[85%] max-w-[340px] bg-[#0a0608]/95 backdrop-blur-xl border-l border-white/10 transition-transform duration-500 flex flex-col px-8 pt-32 pb-8 ${
-          isMenuOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}
+        className={`fixed top-0 right-0 bottom-0 z-[55] w-[85%] max-w-[340px] bg-[#0a0608]/95 backdrop-blur-xl border-l border-white/10 transition-transform duration-500 flex flex-col px-8 pt-32 pb-8 ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'
+          }`}
         style={{ transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)' }}
       >
         <div className="flex flex-col gap-8 flex-1">
@@ -275,13 +273,13 @@ const Hero = () => {
           See what's coming.<br />
           <span className="italic">Not just what broke.</span>
         </h1>
-        <p 
+        <p
           className={`font-inter text-white/70 text-sm md:text-base text-center mt-5 md:mt-7 max-w-xl transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isBootDismissed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0`}
           style={{ transitionDelay: isBootDismissed ? '120ms' : '0ms' }}
         >
           Analyst-grade monitoring of Europe, triaged, assessed, and sourced by a published methodology, at a price a student can pay.
         </p>
-        <div 
+        <div
           className={`pointer-events-auto flex flex-col md:flex-row items-center gap-4 mt-6 md:mt-9 transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isBootDismissed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0`}
           style={{ transitionDelay: isBootDismissed ? '240ms' : '0ms' }}
         >
@@ -292,7 +290,7 @@ const Hero = () => {
             For universities
           </a>
         </div>
-        <p 
+        <p
           className={`text-white/40 text-xs mt-4 font-inter text-center pointer-events-auto transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isBootDismissed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0`}
           style={{ transitionDelay: isBootDismissed ? '360ms' : '0ms' }}
         >
