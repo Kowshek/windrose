@@ -37,10 +37,38 @@ const Button = ({ children, className = '', href }: { children: React.ReactNode;
 const Hero = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isBootDismissed, setIsBootDismissed] = useState(false);
 
   const sectionRef = useRef<HTMLElement>(null);
   const videoWrapperRef = useRef<HTMLDivElement>(null);
   const centerContentRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const handleDismiss = () => {
+      setIsBootDismissed(true);
+    };
+
+    const boot = document.getElementById('boot');
+    if (!boot || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setIsBootDismissed(true);
+    } else {
+      window.addEventListener('boot-dismissed', handleDismiss);
+    }
+
+    // Safety fallback: if video is already loaded when component mounts
+    if (videoRef.current && videoRef.current.readyState >= 2) {
+      window.dispatchEvent(new CustomEvent('hero-video-loaded'));
+    }
+
+    return () => {
+      window.removeEventListener('boot-dismissed', handleDismiss);
+    };
+  }, []);
+
+  const handleVideoLoaded = () => {
+    window.dispatchEvent(new CustomEvent('hero-video-loaded'));
+  };
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -122,10 +150,14 @@ const Hero = () => {
         style={{ background: 'linear-gradient(180deg, #05070d 0%, #081527 55%, #0b2740 100%)' }}
       >
         <video
+          ref={videoRef}
           autoPlay
           muted
           loop
           playsInline
+          preload="auto"
+          poster="/hero-poster.jpg"
+          onLoadedData={handleVideoLoaded}
           className="absolute inset-0 w-full h-full object-cover"
           onError={(e) => {
             (e.target as HTMLVideoElement).style.display = 'none';
@@ -141,9 +173,10 @@ const Hero = () => {
 
       {/* Navbar */}
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-12 py-5 transition-all duration-500 ${
+        className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-12 py-5 transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${
           isScrolled ? 'bg-[#05070d]/70 backdrop-blur-md border-b border-white/5' : ''
-        }`}
+        } ${isBootDismissed ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'} motion-reduce:transition-none motion-reduce:opacity-100`}
+        style={{ transitionDelay: isBootDismissed ? '100ms' : '0ms' }}
       >
         <div className="font-instrument italic text-white text-2xl md:text-3xl">Windrose</div>
 
@@ -238,14 +271,20 @@ const Hero = () => {
 
       {/* Center Content */}
       <div ref={centerContentRef} className="absolute inset-0 flex flex-col items-center justify-center -mt-[120px] px-4 pointer-events-none z-10">
-        <h1 className="font-instrument text-white text-[36px] md:text-7xl lg:text-[110px] leading-[0.9] tracking-tight text-center text-glow">
+        <h1 className={`font-instrument text-white text-[36px] md:text-7xl lg:text-[110px] leading-[0.9] tracking-tight text-center text-glow transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isBootDismissed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0`}>
           See what's coming.<br />
           <span className="italic">Not just what broke.</span>
         </h1>
-        <p className="font-inter text-white/70 text-sm md:text-base text-center mt-5 md:mt-7 max-w-xl">
+        <p 
+          className={`font-inter text-white/70 text-sm md:text-base text-center mt-5 md:mt-7 max-w-xl transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isBootDismissed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0`}
+          style={{ transitionDelay: isBootDismissed ? '120ms' : '0ms' }}
+        >
           Analyst-grade monitoring of Europe, triaged, assessed, and sourced by a published methodology, at a price a student can pay.
         </p>
-        <div className="pointer-events-auto flex flex-col md:flex-row items-center gap-4 mt-6 md:mt-9">
+        <div 
+          className={`pointer-events-auto flex flex-col md:flex-row items-center gap-4 mt-6 md:mt-9 transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isBootDismissed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0`}
+          style={{ transitionDelay: isBootDismissed ? '240ms' : '0ms' }}
+        >
           <Button href="#waitlist" className="w-full md:w-auto text-center">
             For individuals, join the waitlist
           </Button>
@@ -253,7 +292,10 @@ const Hero = () => {
             For universities
           </a>
         </div>
-        <p className="text-white/40 text-xs mt-4 font-inter text-center pointer-events-auto">
+        <p 
+          className={`text-white/40 text-xs mt-4 font-inter text-center pointer-events-auto transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isBootDismissed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0`}
+          style={{ transitionDelay: isBootDismissed ? '360ms' : '0ms' }}
+        >
           Students · analysts · journalists · researchers
         </p>
       </div>
