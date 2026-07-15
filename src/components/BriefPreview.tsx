@@ -9,6 +9,8 @@ const BriefPreview = () => {
   const articleRef = useRef<HTMLElement>(null);
   const indicatorRef = useRef<HTMLSpanElement>(null);
   const blocksRef = useRef<(HTMLDivElement | null)[]>([]);
+  const railRef = useRef<HTMLDivElement>(null);
+  const blocksWrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cleanupCard = () => {};
@@ -39,6 +41,24 @@ const BriefPreview = () => {
           repeat: -1,
           ease: "power1.inOut"
         });
+      }
+
+      // analyst's rail: draws down the margin as the blocks are read
+      if (railRef.current && blocksWrapRef.current) {
+        gsap.fromTo(
+          railRef.current,
+          { scaleY: 0 },
+          {
+            scaleY: 1,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: blocksWrapRef.current,
+              start: 'top 80%',
+              end: 'bottom 55%',
+              scrub: true,
+            },
+          }
+        );
       }
 
       blocksRef.current.forEach((block) => {
@@ -123,7 +143,13 @@ const BriefPreview = () => {
             Poland tightens Belarus border regime ahead of transit talks
           </h3>
 
-          <div className="mt-8 space-y-7">
+          <div ref={blocksWrapRef} className="mt-8 space-y-7 relative pl-5">
+            <div
+              ref={railRef}
+              aria-hidden="true"
+              className="absolute left-0 top-1 bottom-1 w-px bg-white/15 origin-top motion-reduce:hidden"
+              style={{ transform: 'scaleY(0)' }}
+            />
             {blocks.map((b, index) => (
               <div key={b.label} ref={(el) => { blocksRef.current[index] = el; }}>
                 <div className="block-label font-inter text-white/40 text-[11px] font-semibold uppercase">

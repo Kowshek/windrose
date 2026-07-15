@@ -1,8 +1,28 @@
 import { useState, useEffect, useRef } from 'react';
+import { motion, useReducedMotion } from 'motion/react';
 import { scrollToTarget } from '../lib/scroll';
 import { initMagnetic } from '../lib/hover';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
+import WindroseMark from './visuals/WindroseMark';
+
+/** One word of the headline choreography: rises and pulls into focus. */
+const HeadWord = ({ children, italic = false }: { children: string; italic?: boolean }) => (
+  <motion.span
+    className={`inline-block ${italic ? 'italic' : ''}`}
+    variants={{
+      hidden: { y: '0.45em', opacity: 0, filter: 'blur(10px)' },
+      show: {
+        y: '0em',
+        opacity: 1,
+        filter: 'blur(0px)',
+        transition: { duration: 0.95, ease: [0.22, 1, 0.36, 1] },
+      },
+    }}
+  >
+    {children}
+  </motion.span>
+);
 
 const Button = ({ children, className = '', href }: { children: React.ReactNode; className?: string, href?: string }) => {
   const btnRef = useRef<HTMLAnchorElement | HTMLButtonElement>(null);
@@ -38,6 +58,7 @@ const Hero = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isBootDismissed, setIsBootDismissed] = useState(false);
+  const reduced = useReducedMotion();
 
   const sectionRef = useRef<HTMLElement>(null);
   const videoWrapperRef = useRef<HTMLDivElement>(null);
@@ -107,7 +128,7 @@ const Hero = () => {
   // Close mobile menu on resize and handle scroll state
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 768 && isMenuOpen) {
+      if (window.innerWidth >= 1024 && isMenuOpen) {
         setIsMenuOpen(false);
       }
     };
@@ -177,10 +198,13 @@ const Hero = () => {
           } ${isBootDismissed ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'} motion-reduce:transition-none motion-reduce:opacity-100`}
         style={{ transitionDelay: isBootDismissed ? '100ms' : '0ms' }}
       >
-        <div className="font-instrument italic text-white text-2xl md:text-3xl">Windrose</div>
+        <div className="flex items-center gap-2.5">
+          <WindroseMark className="w-6 h-6 md:w-7 md:h-7 text-white/90" />
+          <span className="font-instrument italic text-white text-2xl md:text-3xl">Windrose</span>
+        </div>
 
         {/* Desktop Nav */}
-        <div className="hidden md:flex items-center gap-12">
+        <div className="hidden lg:flex items-center gap-8 xl:gap-12">
           {navLinks.map((link) => (
             <a
               key={link.label}
@@ -194,13 +218,13 @@ const Hero = () => {
           ))}
         </div>
 
-        <div className="hidden md:block">
-          <Button href="#waitlist">Join the waitlist</Button>
+        <div className="hidden lg:block">
+          <Button href="#waitlist" className="whitespace-nowrap">Join the waitlist</Button>
         </div>
 
         {/* Mobile Menu Button */}
         <button
-          className="md:hidden relative z-[60] w-6 h-5"
+          className="lg:hidden relative z-[60] w-6 h-5"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           aria-label="Toggle Menu"
         >
@@ -234,7 +258,7 @@ const Hero = () => {
 
       {/* Mobile Menu Panel */}
       <div
-        className={`fixed top-0 right-0 bottom-0 z-[55] w-[85%] max-w-[340px] bg-[#0a0608]/95 backdrop-blur-xl border-l border-white/10 transition-transform duration-500 flex flex-col px-8 pt-32 pb-8 ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'
+        className={`fixed top-0 right-0 bottom-0 z-[55] w-[85%] max-w-[340px] bg-[#05070d]/95 backdrop-blur-xl border-l border-white/10 transition-transform duration-500 flex flex-col px-8 pt-32 pb-8 ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
         style={{ transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)' }}
       >
@@ -269,10 +293,26 @@ const Hero = () => {
 
       {/* Center Content */}
       <div ref={centerContentRef} className="absolute inset-0 flex flex-col items-center justify-center -mt-[120px] px-4 pointer-events-none z-10">
-        <h1 className={`font-instrument text-white text-[36px] md:text-7xl lg:text-[110px] leading-[0.9] tracking-tight text-center text-glow transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isBootDismissed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0`}>
-          See what's coming.<br />
-          <span className="italic">Not just what broke.</span>
-        </h1>
+        <motion.h1
+          className="font-instrument text-white text-[36px] md:text-7xl lg:text-[110px] leading-[0.9] tracking-tight text-center text-glow"
+          initial={reduced ? 'show' : 'hidden'}
+          animate={isBootDismissed || reduced ? 'show' : 'hidden'}
+          variants={{ hidden: {}, show: {} }}
+          transition={{
+            staggerChildren: reduced ? 0 : 0.075,
+            delayChildren: reduced ? 0 : 0.1,
+            duration: reduced ? 0 : 0.95,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+        >
+          <span className="block">
+            <HeadWord>See</HeadWord> <HeadWord>what&rsquo;s</HeadWord> <HeadWord>coming.</HeadWord>
+          </span>
+          <span className="block">
+            <HeadWord italic>Not</HeadWord> <HeadWord italic>just</HeadWord>{' '}
+            <HeadWord italic>what</HeadWord> <HeadWord italic>broke.</HeadWord>
+          </span>
+        </motion.h1>
         <p
           className={`font-inter text-white/70 text-sm md:text-base text-center mt-5 md:mt-7 max-w-xl transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isBootDismissed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0`}
           style={{ transitionDelay: isBootDismissed ? '120ms' : '0ms' }}
@@ -291,17 +331,25 @@ const Hero = () => {
           </a>
         </div>
         <p
-          className={`text-white/40 text-xs mt-4 font-inter text-center pointer-events-auto transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isBootDismissed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0`}
+          className={`text-white/40 text-xs leading-relaxed mt-4 max-w-xs sm:max-w-none mx-auto font-inter text-center pointer-events-auto transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isBootDismissed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0`}
           style={{ transitionDelay: isBootDismissed ? '360ms' : '0ms' }}
         >
-          Students · analysts · journalists · researchers
+          Students · journalists · analysts · think-tank&nbsp;researchers · NGO&nbsp;staff · educators
         </p>
       </div>
 
       {/* Indicator */}
       <div className="hidden md:flex absolute bottom-8 left-8 items-center gap-4 z-10 font-inter">
-        <div className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center">
-          <div className="w-4 h-[2px] bg-white/60" />
+        <div className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center overflow-hidden">
+          <motion.svg
+            viewBox="0 0 12 14"
+            className="w-3 h-3.5"
+            fill="none"
+            animate={reduced ? undefined : { y: [0, 3, 0] }}
+            transition={{ duration: 2.2, ease: 'easeInOut', repeat: Infinity }}
+          >
+            <path d="M6 1 V13 M1.5 8.5 L6 13 L10.5 8.5" stroke="rgba(255,255,255,0.6)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+          </motion.svg>
         </div>
         <div className="text-white/60 text-xs flex flex-col tracking-wider uppercase">
           <span>The daily brief</span>

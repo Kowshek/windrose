@@ -1,7 +1,10 @@
+import WindroseMark from './visuals/WindroseMark';
+
 const Footer = () => {
   return (
     <footer className="w-full bg-[#03050a] border-t border-white/5 py-12 px-6 flex justify-center text-center">
       <div className="w-full max-w-4xl flex flex-col items-center gap-6">
+        <WindroseMark trackCursor className="w-9 h-9 text-white/60" />
         <h3 className="font-instrument italic text-white/70 text-xl md:text-2xl mb-2">
           Windrose
         </h3>

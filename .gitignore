@@ -4,3 +4,10 @@ dist/
 .env.*
 *.log
 .DS_Store
+.shots/
+
+# local agent/skill tooling — not part of the app
+.claude/
+.agents/
+.impeccable/
+skills-lock.json
