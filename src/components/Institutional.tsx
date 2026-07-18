@@ -73,13 +73,13 @@ const Institutional = () => {
   }, [story]);
 
   return (
-    <section id="universities" className="relative w-full py-24 md:py-32 px-6 flex justify-center overflow-hidden">
+    <section id="universities" className="relative w-full pt-28 pb-36 md:pt-36 md:pb-44 px-6 flex justify-center overflow-hidden">
       <div
-        className="absolute left-0 bottom-0 w-[600px] h-[500px] pointer-events-none"
-        style={{ background: 'radial-gradient(circle at 20% 80%, rgba(135,200,245,0.05), transparent 65%)' }}
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse 55% 60% at 50% 55%, rgba(135,200,245,0.08), transparent 70%)' }}
       />
-      <div ref={containerRef} className="w-full max-w-3xl relative">
-        <div ref={cardRef} className="liquid-glass rounded-2xl p-10 md:p-14 text-center">
+      <div ref={containerRef} className="w-full max-w-4xl relative">
+        <div ref={cardRef} className="liquid-glass rounded-2xl p-10 md:p-14 text-left">
           <p data-story-fg className="font-inter text-white/40 text-sm tracking-[0.3em] uppercase">
             For universities
           </p>
@@ -87,13 +87,13 @@ const Institutional = () => {
             A live Europe intelligence lab for your{' '}
             <span className="italic">IR and security-studies</span> students
           </h2>
-          <p className="font-inter text-white/60 text-sm md:text-base leading-relaxed mt-6 max-w-xl mx-auto">
+          <p className="font-inter text-white/60 text-sm md:text-base leading-relaxed mt-6 max-w-xl">
             Departments and libraries get live Europe monitoring plus a teaching tool: real briefs, a forward events calendar, and a transparent methodology students can study and challenge. Semester pilots are available for a single program or cohort.
           </p>
           <a
             ref={btnRef}
             href="mailto:hello@windroseintelligence.com?subject=University%20pilot%20inquiry"
-            className="inline-block mt-8 bg-white text-black px-8 py-3.5 rounded-full font-medium text-sm tracking-wide hover:bg-white/90 transition-all duration-300 button-glow font-inter"
+            className="inline-block mt-8 bg-white text-black px-8 py-3.5 rounded-full font-medium text-sm tracking-wide hover:bg-white/90 active:scale-[0.98] transition-all duration-300 button-glow font-inter"
           >
             Start a pilot conversation
           </a>

@@ -94,7 +94,7 @@ const Pledge = () => {
               <button
                 ref={btnRef}
                 type="submit"
-                className="w-full bg-white text-black px-8 py-3.5 rounded-full font-medium text-sm tracking-wide hover:bg-white/90 transition-all duration-300 button-glow"
+                className="w-full bg-white text-black px-8 py-3.5 rounded-full font-medium text-sm tracking-wide hover:bg-white/90 active:scale-[0.98] transition-all duration-300 button-glow"
               >
                 Reserve my spot
               </button>

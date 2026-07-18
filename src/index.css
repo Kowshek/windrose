@@ -7,7 +7,14 @@
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  /* top-edge highlight reads as lighting on every glass surface */
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  transition: border-color 0.3s ease;
+}
+@media (hover: hover) {
+  .liquid-glass:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+  }
 }
 
 .text-glow {
@@ -93,6 +100,12 @@
     padding-top: 2.5rem;
     padding-bottom: 2.5rem;
     overflow: visible;
+  }
+  /* Finale sits low in its panel so the page-bottom view composes the whole
+     card above the footer instead of cutting it in half. */
+  .story-panel > #universities {
+    align-items: flex-end;
+    padding-bottom: 6.5rem;
   }
   /* Waitlist's seam gradient + top clearance stitch it below QuoteSection in
      vertical flow; side-by-side they'd read as a stray band. */

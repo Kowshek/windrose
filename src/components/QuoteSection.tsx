@@ -6,6 +6,19 @@ import { StoryContext } from '../lib/scroll';
 const clamp = (min: number, max: number, val: number) => Math.max(min, Math.min(max, val));
 const lerp = (start: number, end: number, factor: number) => start + (end - start) * factor;
 
+// Signature moment: named sources converge on the assessment as you scroll —
+// the method performed, not described. Positions are % of the section.
+const FEEDS = [
+  { n: 'PAP', x: 15, y: 22 },
+  { n: 'Belta', x: 83, y: 19 },
+  { n: 'MSWiA', x: 9, y: 55 },
+  { n: 'Reuters', x: 89, y: 58 },
+  { n: 'EU Council', x: 20, y: 82 },
+  { n: 'Frontex', x: 79, y: 84 },
+  { n: 'ISW', x: 34, y: 11 },
+  { n: 'DGAP', x: 63, y: 90 },
+];
+
 /**
  * Methodology section — parallax quote. Dark gradient only (no light blue),
  * CSS-only glow layers driven by the original rAF + lerp rig.
@@ -18,6 +31,7 @@ const QuoteSection = () => {
   const rightGlowRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLParagraphElement>(null);
   const authorRef = useRef<HTMLParagraphElement>(null);
+  const assemblyRef = useRef<HTMLDivElement>(null);
 
   const current = useRef({
     horizonY: 120,
@@ -121,6 +135,40 @@ const QuoteSection = () => {
             },
           }
         );
+
+        // The assembly: feeds fly in from the panel edges, corroboration
+        // lines draw to the assessment, then the whole layer recedes as the
+        // published words take over. Scrubbed — the reader's scroll runs the
+        // pipeline.
+        if (assemblyRef.current) {
+          const chips = assemblyRef.current.querySelectorAll('.mq-chip');
+          const lines = assemblyRef.current.querySelectorAll('.mq-line');
+          gsap.timeline({
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              containerAnimation: story,
+              start: 'left 98%',
+              end: 'left 8%',
+              scrub: 1,
+            },
+          })
+            .fromTo(chips,
+              {
+                xPercent: -50,
+                yPercent: -50,
+                x: (i: number) => (i % 2 ? 200 : -200),
+                y: (i: number) => (i % 3) * 44 - 44,
+                opacity: 0,
+              },
+              { xPercent: -50, yPercent: -50, x: 0, y: 0, opacity: 1, stagger: 0.05, duration: 0.4, ease: 'power1.out' }
+            )
+            .fromTo(lines,
+              { strokeDasharray: 140, strokeDashoffset: 140, opacity: 0 },
+              { strokeDashoffset: 0, opacity: 1, stagger: 0.04, duration: 0.3, ease: 'none' },
+              0.22
+            )
+            .to([chips, lines], { opacity: 0.18, duration: 0.3, ease: 'none' }, 0.72);
+        }
       }
 
       const words = textRef.current.querySelectorAll('.quote-word');
@@ -175,7 +223,7 @@ const QuoteSection = () => {
     <section
       id="method"
       ref={sectionRef}
-      className="relative w-full overflow-hidden flex items-center justify-center px-6 py-32 md:py-48"
+      className="relative w-full overflow-hidden flex items-center justify-center px-6 py-40 md:py-56"
       style={{
         background: 'linear-gradient(to right, rgba(5,7,13,0) 0%, #04182B 25%, #0A2E4A 50%, #04182B 75%, rgba(5,7,13,0) 100%)'
       }}
@@ -215,6 +263,37 @@ const QuoteSection = () => {
           filter: 'blur(20px)'
         }}
       />
+
+      {/* Source assembly layer (story mode only): the method, performed */}
+      {story && (
+        <div ref={assemblyRef} aria-hidden="true" className="absolute inset-0 z-[15] pointer-events-none">
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
+            {FEEDS.map((f) => (
+              <line
+                key={f.n}
+                className="mq-line"
+                x1={f.x}
+                y1={f.y}
+                x2={50}
+                y2={52}
+                stroke="#c8e6ff"
+                strokeOpacity="0.14"
+                strokeWidth="1"
+                vectorEffect="non-scaling-stroke"
+              />
+            ))}
+          </svg>
+          {FEEDS.map((f) => (
+            <span
+              key={f.n}
+              className="mq-chip absolute font-inter text-[11px] tracking-[0.12em] text-white/55 border border-white/15 rounded-full px-2.5 py-1 whitespace-nowrap"
+              style={{ left: `${f.x}%`, top: `${f.y}%`, background: 'rgba(5,7,13,0.7)' }}
+            >
+              {f.n}
+            </span>
+          ))}
+        </div>
+      )}
 
       {/* Quote Content */}
       <div className="relative z-20 max-w-4xl text-center">

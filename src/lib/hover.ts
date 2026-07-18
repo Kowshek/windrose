@@ -64,7 +64,7 @@ export function initCardGlow(el: HTMLElement) {
     currentRotateX = 0;
     currentRotateY = 0;
     overlay.style.opacity = '0';
-    el.style.transition = 'transform 600ms cubic-bezier(0.23, 1, 0.32, 1)';
+    el.style.transition = 'transform 600ms cubic-bezier(0.22, 1, 0.36, 1)';
     el.style.transform = 'perspective(800px) rotateX(0deg) rotateY(0deg)';
   };
 
@@ -103,7 +103,7 @@ export function initMagnetic(el: HTMLElement) {
     if (!isHovering && Math.abs(currentX) < 0.05 && Math.abs(currentY) < 0.05) {
       currentX = 0;
       currentY = 0;
-      el.style.transition = 'transform 400ms cubic-bezier(0.23, 1, 0.32, 1)';
+      el.style.transition = 'transform 400ms cubic-bezier(0.22, 1, 0.36, 1)';
       el.style.transform = 'translate3d(0px, 0px, 0)';
       running = false;
       return;

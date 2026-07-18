@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion, useInView, useReducedMotion } from 'motion/react';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
-import { initCardGlow } from '../lib/hover';
 import EuropeSignalMap, { SignalEvent } from './visuals/EuropeSignalMap';
 import { CITIES, MAP_W, MAP_H } from './visuals/europe-dots';
 import TriageVisual from './visuals/TriageVisual';
@@ -16,7 +15,7 @@ const EVENTS: SignalEvent[] = [
   { city: 'istanbul', title: 'Black Sea corridor review', date: 'Sep', level: 'elevated' },
 ];
 
-// Aperture reveal: cards open vertically out of a slight blur.
+// Aperture reveal: blocks open vertically out of a slight blur.
 const cardReveal = (reduced: boolean) => ({
   hidden: reduced
     ? { opacity: 1, y: 0 }
@@ -29,7 +28,7 @@ const cardReveal = (reduced: boolean) => ({
   },
 });
 
-/** Wide panel: the forward map with live signal list. */
+/** First beat: the forward map with live signal list — open editorial block. */
 const SeeAheadPanel = () => {
   const reduced = useReducedMotion();
   const panelRef = useRef<HTMLDivElement>(null);
@@ -50,20 +49,20 @@ const SeeAheadPanel = () => {
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, amount: 0.2 }}
-      className="liquid-glass rounded-2xl p-8 md:p-10 w-full"
+      className="w-full"
     >
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] gap-8 lg:gap-12 items-center">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] gap-10 lg:gap-16 items-center">
         <div>
           <h3 className="font-instrument text-white text-2xl md:text-3xl">
             See <span className="italic">ahead</span>
           </h3>
-          <p className="font-inter text-white/60 text-sm leading-relaxed mt-3 max-w-md">
+          <p className="font-inter text-white/60 text-sm leading-relaxed mt-4 max-w-md">
             The events calendar and risk map show what is coming, not just what broke: summits,
             elections, deadlines, flashpoints.
           </p>
 
           <div
-            className="mt-6 flex flex-col"
+            className="mt-8 flex flex-col"
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}
           >
@@ -106,7 +105,7 @@ const SeeAheadPanel = () => {
         </div>
 
         <div className="order-first lg:order-last flex justify-center">
-          <div className="relative w-full max-w-[300px] sm:max-w-[360px] lg:max-w-[420px]">
+          <div className="relative w-full max-w-[300px] sm:max-w-[360px] lg:max-w-[440px]">
             <EuropeSignalMap events={EVENTS} active={active} live={inView} className="w-full" />
             {/* floating label pinned to the active signal (desktop) */}
             <AnimatePresence mode="wait">
@@ -148,7 +147,8 @@ const SeeAheadPanel = () => {
   );
 };
 
-const BeatCard = ({
+/** Open editorial beat: visual, serif title, short body. No box, no border. */
+const Beat = ({
   title,
   titleItalic,
   body,
@@ -160,11 +160,6 @@ const BeatCard = ({
   children: React.ReactNode;
 }) => {
   const reduced = useReducedMotion();
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (cardRef.current) return initCardGlow(cardRef.current);
-  }, []);
 
   return (
     <motion.div
@@ -172,14 +167,13 @@ const BeatCard = ({
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, amount: 0.25 }}
+      className="flex flex-col h-full"
     >
-      <div ref={cardRef} className="liquid-glass rounded-2xl p-8 h-full flex flex-col gap-5">
-        {children}
-        <h3 className="font-instrument text-white text-2xl md:text-[28px] mt-auto">
-          {title} <span className="italic">{titleItalic}</span>
-        </h3>
-        <p className="font-inter text-white/60 text-sm leading-relaxed">{body}</p>
-      </div>
+      {children}
+      <h3 className="font-instrument text-white text-2xl md:text-[28px] mt-auto pt-6">
+        {title} <span className="italic">{titleItalic}</span>
+      </h3>
+      <p className="font-inter text-white/60 text-sm leading-relaxed mt-3 max-w-md">{body}</p>
     </motion.div>
   );
 };
@@ -218,43 +212,49 @@ const ThreeBeats = () => {
   const headingWords = ['Built', 'for', 'people', 'who', 'read', 'the', 'world', 'for', 'a', 'living'];
 
   return (
-    <section id="beats" className="relative w-full py-24 md:py-32 px-6 flex justify-center overflow-hidden">
+    <section id="beats" className="relative w-full pt-28 pb-36 md:pt-36 md:pb-48 px-6 lg:px-12 flex justify-center overflow-hidden">
       {/* Atmosphere echo from the hero's earth glow */}
       <div
         className="absolute inset-x-0 top-0 h-[420px] pointer-events-none"
         style={{ background: 'radial-gradient(ellipse 70% 100% at 50% 0%, rgba(120,185,230,0.07), transparent 60%)' }}
       />
-      <div className="w-full max-w-6xl flex flex-col items-center relative">
-        <h2
-          data-story-fg
-          ref={headingRef}
-          className="font-instrument text-3xl md:text-5xl text-center text-white mb-16 max-w-3xl flex flex-wrap justify-center gap-x-[0.25em]"
-        >
-          {headingWords.map((w, i) => (
-            <span key={i} className="word inline-block">
-              {w}
-            </span>
-          ))}
-          <span className="word inline-block italic">or want to.</span>
-        </h2>
+      {/* Editorial split: sticky heading rail left, the three beats right. */}
+      <div className="w-full max-w-[1400px] relative lg:grid lg:grid-cols-[35fr_65fr] lg:gap-x-20 xl:gap-x-28 lg:items-start">
+        <div className="lg:sticky lg:top-32 lg:self-start mb-12 lg:mb-0">
+          <p className="font-inter text-white/40 text-xs tracking-[0.3em] uppercase">
+            Why Windrose
+          </p>
+          <h2
+            data-story-fg
+            ref={headingRef}
+            className="font-instrument text-3xl md:text-5xl xl:text-[54px] leading-[1.12] tracking-tight text-white mt-6 flex flex-wrap gap-x-[0.25em]"
+          >
+            {headingWords.map((w, i) => (
+              <span key={i} className="word inline-block">
+                {w}
+              </span>
+            ))}
+            <span className="word inline-block italic">or want to.</span>
+          </h2>
+        </div>
 
-        <div className="w-full flex flex-col gap-6">
+        <div className="flex flex-col gap-16 md:gap-20">
           <SeeAheadPanel />
-          <div className="grid md:grid-cols-2 gap-6">
-            <BeatCard
+          <div className="grid md:grid-cols-2 gap-x-12 gap-y-12">
+            <Beat
               title="Stop drowning in"
               titleItalic="headlines"
               body="5–8 items a day, each with what happened, why it matters, and what to watch. The triage is done before you open it."
             >
               <TriageVisual />
-            </BeatCard>
-            <BeatCard
+            </Beat>
+            <Beat
               title="Learn the"
               titleItalic="craft"
               body="Every brief shows its sourcing and method, teaching the same tradecraft the profession uses as you read."
             >
               <MethodVisual />
-            </BeatCard>
+            </Beat>
           </div>
         </div>
       </div>

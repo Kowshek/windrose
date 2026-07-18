@@ -42,13 +42,13 @@ const Button = ({ children, className = '', href }: { children: React.ReactNode;
 
   if (href) {
     return (
-      <a ref={btnRef as React.RefObject<HTMLAnchorElement>} href={href} onClick={handleClick} className={`inline-block bg-white text-black px-8 py-3.5 rounded-full font-medium text-sm tracking-wide hover:bg-white/90 transition-all duration-300 button-glow ${className}`}>
+      <a ref={btnRef as React.RefObject<HTMLAnchorElement>} href={href} onClick={handleClick} className={`inline-block bg-white text-black px-8 py-3.5 rounded-full font-medium text-sm tracking-wide hover:bg-white/90 active:scale-[0.98] transition-all duration-300 button-glow ${className}`}>
         {children}
       </a>
     );
   }
   return (
-    <button ref={btnRef as React.RefObject<HTMLButtonElement>} className={`bg-white text-black px-8 py-3.5 rounded-full font-medium text-sm tracking-wide hover:bg-white/90 transition-all duration-300 button-glow ${className}`}>
+    <button ref={btnRef as React.RefObject<HTMLButtonElement>} className={`bg-white text-black px-8 py-3.5 rounded-full font-medium text-sm tracking-wide hover:bg-white/90 active:scale-[0.98] transition-all duration-300 button-glow ${className}`}>
       {children}
     </button>
   );
@@ -218,8 +218,8 @@ const Hero = () => {
 
       {/* Bottom dissolve into the page base so the ticker reads as the same scene */}
       <div
-        className="absolute inset-x-0 bottom-0 h-[38vh] pointer-events-none"
-        style={{ background: 'linear-gradient(to bottom, transparent, #05070d 92%)' }}
+        className="absolute inset-x-0 bottom-0 h-24 pointer-events-none"
+        style={{ background: 'linear-gradient(to bottom, transparent, #05070d 100%)' }}
       />
 
       {/* Navbar */}
@@ -356,7 +356,7 @@ const Hero = () => {
           <Button href="#waitlist" className="w-full md:w-auto text-center">
             For individuals, join the waitlist
           </Button>
-          <a ref={uniBtnRef} href="#universities" onClick={(e) => handleSmoothScroll(e, '#universities')} className="liquid-glass text-white px-8 py-3.5 rounded-full font-medium text-sm tracking-wide hover:bg-white/10 transition-colors text-center w-full md:w-auto">
+          <a ref={uniBtnRef} href="#universities" onClick={(e) => handleSmoothScroll(e, '#universities')} className="liquid-glass text-white px-8 py-3.5 rounded-full font-medium text-sm tracking-wide hover:bg-white/10 active:scale-[0.98] transition-all duration-300 text-center w-full md:w-auto">
             For universities
           </a>
         </div>

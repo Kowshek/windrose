@@ -114,7 +114,7 @@ const BriefPreview = () => {
       // itself keeps its IntersectionObserver fade (transform/opacity/filter
       // only — cheap, composited).
       if (story && ref.current) {
-        const intro = ref.current.querySelectorAll(':scope > p, :scope > h2');
+        const intro = ref.current.querySelectorAll('.bp-intro');
         gsap.fromTo(intro,
           { opacity: 0, y: 26, filter: 'blur(6px)', clipPath: 'inset(0% 0% 100% 0%)' },
           {
@@ -139,8 +139,9 @@ const BriefPreview = () => {
         if (articleRef.current) {
           gsap.set(articleRef.current, { transition: 'none' });
           gsap.fromTo(articleRef.current,
-            { clipPath: 'inset(0% 0% 100% 0% round 16px)', scale: 0.98, y: 30 },
+            { clipPath: 'inset(0% 0% 100% 0% round 16px)', scale: 0.96, y: 30, rotation: 2.2 },
             {
+              rotation: 0,
               clipPath: 'inset(0% 0% 0% 0% round 16px)',
               scale: 1,
               y: 0,
@@ -200,28 +201,45 @@ const BriefPreview = () => {
   ];
 
   return (
-    <section id="preview" className="relative w-full py-24 md:py-32 px-6 flex justify-center overflow-hidden">
+    <section id="preview" className="relative w-full lg:min-h-screen py-16 md:py-20 px-6 lg:px-12 flex items-center justify-center overflow-hidden">
       <div
         className="absolute right-0 top-1/4 w-[600px] h-[600px] pointer-events-none"
         style={{ background: 'radial-gradient(circle at 80% 50%, rgba(135,200,245,0.05), transparent 65%)' }}
       />
-      <div ref={ref} className="w-full max-w-3xl flex flex-col items-center relative">
-        <p className="font-inter text-white/40 text-sm tracking-[0.3em] uppercase text-center">
-          Product preview
-        </p>
-        <h2 className="font-instrument text-3xl md:text-5xl text-center text-white mt-4">
-          One item from the <span className="italic">Daily Brief</span>
-        </h2>
-        <p className="font-inter text-white/50 text-sm text-center mt-4">
-          Sample item, shown in the real format.
-        </p>
+      {/* Editorial split: oversized headline left, the artifact right, offset
+          off-center for a keynote read. */}
+      {/* Mirrored spread: card leads on the left, headline rides right. */}
+      <div ref={ref} className="w-full max-w-[1480px] relative lg:grid lg:grid-cols-[62fr_38fr] lg:gap-x-12 xl:gap-x-16 lg:items-center">
+        <div className="mb-12 lg:mb-0 lg:-mt-10 lg:order-2 lg:text-right">
+          <p className="bp-intro font-inter text-white/40 text-xs tracking-[0.3em] uppercase">
+            Product preview
+          </p>
+          <h2 className="bp-intro font-instrument text-4xl md:text-5xl xl:text-[56px] leading-[1.08] tracking-tight text-white mt-6 max-w-xl lg:ml-auto">
+            One item from the <span className="italic">Daily Brief</span>
+          </h2>
+          <p className="bp-intro font-inter text-white/50 text-sm mt-6">
+            Sample item, shown in the real format.
+          </p>
+        </div>
 
+        <div className="relative lg:mt-12 lg:order-1">
+          {/* backlight: the card sits in its own pool of light */}
+          <div
+            aria-hidden="true"
+            className="absolute -inset-10 pointer-events-none"
+            style={{ background: 'radial-gradient(ellipse 70% 60% at 50% 40%, rgba(135,200,245,0.07), transparent 70%)' }}
+          />
         <article
           ref={articleRef}
-          className={`liquid-glass rounded-2xl p-8 md:p-12 mt-12 w-full transition-all duration-[900ms] motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0 ${
+          className={`relative liquid-glass rounded-2xl p-10 md:p-14 w-full transition-all duration-[900ms] motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0 ${
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-[28px]'
           }`}
-          style={{ transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)', transitionDelay: '150ms' }}
+          style={{
+            transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
+            transitionDelay: '150ms',
+            boxShadow:
+              '0 40px 90px -25px rgba(0,0,0,0.6), 0 0 50px rgba(135,200,245,0.05), inset 0 1px 0 rgba(255,255,255,0.07)',
+          }}
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <span className="font-inter text-white/40 text-sm tracking-wide">Daily Brief · 12 July 2026</span>
@@ -230,7 +248,7 @@ const BriefPreview = () => {
             </span>
           </div>
 
-          <h3 className="font-instrument text-white text-2xl md:text-3xl leading-snug mt-6">
+          <h3 className="font-instrument text-white text-2xl md:text-[34px] leading-snug mt-6">
             Poland tightens Belarus border regime ahead of transit talks
           </h3>
 
@@ -257,6 +275,7 @@ const BriefPreview = () => {
             </p>
           </div>
         </article>
+        </div>
       </div>
     </section>
   );
