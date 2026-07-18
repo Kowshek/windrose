@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
+import { StoryContext } from '../lib/scroll';
 
 const clamp = (min: number, max: number, val: number) => Math.max(min, Math.min(max, val));
 const lerp = (start: number, end: number, factor: number) => start + (end - start) * factor;
@@ -10,6 +11,7 @@ const lerp = (start: number, end: number, factor: number) => start + (end - star
  * CSS-only glow layers driven by the original rAF + lerp rig.
  */
 const QuoteSection = () => {
+  const story = useContext(StoryContext);
   const sectionRef = useRef<HTMLDivElement>(null);
   const horizonRef = useRef<HTMLDivElement>(null);
   const leftGlowRef = useRef<HTMLDivElement>(null);
@@ -28,14 +30,19 @@ const QuoteSection = () => {
   });
 
   useEffect(() => {
-    let animationFrameId: number;
+    let animationFrameId = 0;
+    let rigRunning = false;
+    // Inside the horizontal story the section crosses the viewport on the x
+    // axis, so the glow rig reads progress from rect.left instead of rect.top.
+    const horizontal = !!story;
 
     const animate = () => {
       if (!sectionRef.current) return;
 
       const rect = sectionRef.current.getBoundingClientRect();
-      const windowHeight = window.innerHeight;
-      const progress = clamp(0, 1, (windowHeight - rect.top) / (windowHeight + rect.height));
+      const progress = horizontal
+        ? clamp(0, 1, (window.innerWidth - rect.left) / (window.innerWidth + rect.width))
+        : clamp(0, 1, (window.innerHeight - rect.top) / (window.innerHeight + rect.height));
 
       const targetHorizonY = 120 - progress * 280;
 
@@ -66,49 +73,102 @@ const QuoteSection = () => {
         rightGlowRef.current.style.opacity = c.rightOpacity.toString();
       }
 
-      animationFrameId = requestAnimationFrame(animate);
+      if (rigRunning) animationFrameId = requestAnimationFrame(animate);
     };
 
-    animate();
+    // The rig (and its per-frame rect read) only runs while the section is
+    // near the viewport, and not at all under reduced motion — the glows then
+    // simply hold their resting state.
+    const rigReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const rigObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !rigRunning) {
+          rigRunning = true;
+          animationFrameId = requestAnimationFrame(animate);
+        } else if (!entry.isIntersecting && rigRunning) {
+          rigRunning = false;
+          cancelAnimationFrame(animationFrameId);
+        }
+      },
+      { rootMargin: '25%' }
+    );
+    if (!rigReduced && sectionRef.current) rigObserver.observe(sectionRef.current);
 
     gsap.registerPlugin(ScrollTrigger);
     const mm = gsap.matchMedia();
 
     mm.add("(prefers-reduced-motion: no-preference)", () => {
       if (!sectionRef.current || !textRef.current || !authorRef.current) return;
-      
+
+      // Story-only entrance: a focus pull — the whole quote settles from a
+      // soft blur and slight overscale as the panel slides in. The per-word
+      // opacity stagger below runs on the spans, so the two never touch the
+      // same property.
+      if (story) {
+        gsap.fromTo(textRef.current,
+          { y: 48, scale: 1.035, filter: 'blur(9px)' },
+          {
+            y: 0,
+            scale: 1,
+            filter: 'blur(0px)',
+            ease: 'power1.out',
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              containerAnimation: story,
+              start: 'left 98%',
+              end: 'left 40%',
+              scrub: 1,
+            },
+          }
+        );
+      }
+
       const words = textRef.current.querySelectorAll('.quote-word');
-      
+
       const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top 75%",
-          end: "bottom 60%",
-          scrub: true,
-        }
+        scrollTrigger: story
+          ? {
+            trigger: sectionRef.current,
+            containerAnimation: story,
+            start: 'left 85%',
+            end: 'left 12%',
+            scrub: 1,
+          }
+          : {
+            trigger: sectionRef.current,
+            start: "top 75%",
+            end: "bottom 60%",
+            scrub: true,
+          }
       });
-      
+
       gsap.set(words, { opacity: 0.15 });
-      
+
       tl.to(words, {
         opacity: 1,
         stagger: 0.1,
         ease: 'none'
       })
-      .fromTo(authorRef.current, 
-        { opacity: 0 }, 
-        { opacity: 1, ease: 'none' }, 
-        ">"
-      );
+        .fromTo(authorRef.current,
+          story
+            ? { opacity: 0, y: 12, clipPath: 'inset(0% 100% 0% 0%)' }
+            : { opacity: 0 },
+          story
+            ? { opacity: 1, y: 0, clipPath: 'inset(0% 0% 0% 0%)', ease: 'none' }
+            : { opacity: 1, ease: 'none' },
+          ">"
+        );
     });
 
     return () => {
+      rigObserver.disconnect();
+      rigRunning = false;
       cancelAnimationFrame(animationFrameId);
       mm.revert();
     };
-  }, []);
+  }, [story]);
 
-  const quoteText = "Every item shows its sourcing, its confidence, and the indicators behind the call: a transparent scoring system with published criteria. The method is the product. No black box.";
+  const quoteText = "Every item shows its sourcing, its confidence, and the indicators behind the call: a transparent scoring system with published criteria. The method is the product. No black box";
   const quoteWords = quoteText.split(' ');
 
   return (
@@ -117,7 +177,7 @@ const QuoteSection = () => {
       ref={sectionRef}
       className="relative w-full overflow-hidden flex items-center justify-center px-6 py-32 md:py-48"
       style={{
-        background: 'linear-gradient(to bottom, #05070d 0%, #04182B 40%, #0A2E4A 75%, #0E3350 100%)'
+        background: 'linear-gradient(to right, rgba(5,7,13,0) 0%, #04182B 25%, #0A2E4A 50%, #04182B 75%, rgba(5,7,13,0) 100%)'
       }}
     >
       {/* Horizon glow (parallax, replaces the old rainbow image) */}
@@ -165,7 +225,7 @@ const QuoteSection = () => {
           ))}
           <span className="quote-word inline-block">&rdquo;</span>
         </p>
-        <p ref={authorRef} className="font-inter mt-6 md:mt-8 text-white/80 text-sm md:text-base tracking-wide">
+        <p ref={authorRef} data-story-fg className="font-inter mt-6 md:mt-8 text-white/80 text-sm md:text-base tracking-wide">
           The Windrose method: published, scored, and open to challenge
         </p>
       </div>

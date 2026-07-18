@@ -1,9 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useContext } from 'react';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 import { initCardGlow } from '../lib/hover';
+import { StoryContext } from '../lib/scroll';
 
 const BriefPreview = () => {
+  const story = useContext(StoryContext);
   const [isVisible, setIsVisible] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const articleRef = useRef<HTMLElement>(null);
@@ -43,7 +45,9 @@ const BriefPreview = () => {
         });
       }
 
-      // analyst's rail: draws down the margin as the blocks are read
+      // analyst's rail: draws down the margin as the blocks are read.
+      // Inside the horizontal story the same scrub is driven by the container
+      // tween via horizontal trigger positions.
       if (railRef.current && blocksWrapRef.current) {
         gsap.fromTo(
           railRef.current,
@@ -51,39 +55,126 @@ const BriefPreview = () => {
           {
             scaleY: 1,
             ease: 'none',
-            scrollTrigger: {
-              trigger: blocksWrapRef.current,
-              start: 'top 80%',
-              end: 'bottom 55%',
-              scrub: true,
-            },
+            scrollTrigger: story
+              ? {
+                  trigger: blocksWrapRef.current,
+                  containerAnimation: story,
+                  start: 'left 85%',
+                  end: 'left 30%',
+                  scrub: 1,
+                }
+              : {
+                  trigger: blocksWrapRef.current,
+                  start: 'top 80%',
+                  end: 'bottom 55%',
+                  scrub: true,
+                },
           }
         );
       }
 
-      blocksRef.current.forEach((block) => {
+      blocksRef.current.forEach((block, index) => {
         if (!block) return;
         const label = block.querySelector('.block-label');
         const body = block.querySelector('.block-body');
 
+        // Blocks share one horizontal position, so the story mode staggers
+        // them by offsetting each trigger window.
         const tl = gsap.timeline({
-          scrollTrigger: {
-            trigger: block,
-            start: "top 80%",
-            end: "top 60%",
-            scrub: true,
-          }
+          scrollTrigger: story
+            ? {
+                trigger: block,
+                containerAnimation: story,
+                start: `left ${88 - index * 12}%`,
+                end: `left ${64 - index * 12}%`,
+                scrub: 1,
+              }
+            : {
+                trigger: block,
+                start: "top 80%",
+                end: "top 60%",
+                scrub: true,
+              }
         });
 
-        tl.fromTo(label, 
-          { letterSpacing: '0.5em', opacity: 0 },
-          { letterSpacing: '0.25em', opacity: 1, ease: 'none', duration: 0.5 }
+        // scaleX in place of letterSpacing: same tightening read, but
+        // transform-only — animating letter-spacing relayouts every frame.
+        tl.fromTo(label,
+          { scaleX: 1.12, opacity: 0, transformOrigin: '0% 50%' },
+          { scaleX: 1, opacity: 1, ease: 'none', duration: 0.5 }
         ).fromTo(body,
           { opacity: 0, y: 10 },
           { opacity: 1, y: 0, ease: 'none', duration: 0.5 },
           "<0.2"
         );
       });
+
+      // Story-only entrance: the intro copy rises out of a slight blur as the
+      // panel slides in, and the article headline settles just after. The card
+      // itself keeps its IntersectionObserver fade (transform/opacity/filter
+      // only — cheap, composited).
+      if (story && ref.current) {
+        const intro = ref.current.querySelectorAll(':scope > p, :scope > h2');
+        gsap.fromTo(intro,
+          { opacity: 0, y: 26, filter: 'blur(6px)', clipPath: 'inset(0% 0% 100% 0%)' },
+          {
+            opacity: 1,
+            y: 0,
+            filter: 'blur(0px)',
+            clipPath: 'inset(0% 0% 0% 0%)',
+            stagger: 0.08,
+            ease: 'power1.out',
+            scrollTrigger: {
+              trigger: ref.current,
+              containerAnimation: story,
+              start: 'left 95%',
+              end: 'left 45%',
+              scrub: 1,
+            },
+          }
+        );
+
+        // Card unmasks bottom-up with a slight scale; inline transition:none
+        // stops the class-based CSS transition from fighting the scrub.
+        if (articleRef.current) {
+          gsap.set(articleRef.current, { transition: 'none' });
+          gsap.fromTo(articleRef.current,
+            { clipPath: 'inset(0% 0% 100% 0% round 16px)', scale: 0.98, y: 30 },
+            {
+              clipPath: 'inset(0% 0% 0% 0% round 16px)',
+              scale: 1,
+              y: 0,
+              ease: 'power2.out',
+              scrollTrigger: {
+                trigger: ref.current,
+                containerAnimation: story,
+                start: 'left 90%',
+                end: 'left 35%',
+                scrub: 1,
+              },
+            }
+          );
+        }
+
+        const title = articleRef.current?.querySelector('h3');
+        if (title) {
+          gsap.fromTo(title,
+            { opacity: 0, y: 18 },
+            {
+              opacity: 1,
+              y: 0,
+              ease: 'power1.out',
+              scrollTrigger: {
+                trigger: ref.current,
+                containerAnimation: story,
+                start: 'left 82%',
+                end: 'left 40%',
+                scrub: 1,
+              },
+            }
+          );
+        }
+      }
     });
 
     return () => {
@@ -91,7 +182,7 @@ const BriefPreview = () => {
       mm.revert();
       cleanupCard();
     };
-  }, []);
+  }, [story]);
 
   const blocks = [
     {
@@ -109,13 +200,13 @@ const BriefPreview = () => {
   ];
 
   return (
-    <section id="preview" className="relative w-full bg-[#05070d] py-24 md:py-32 px-6 flex justify-center overflow-hidden">
+    <section id="preview" className="relative w-full py-24 md:py-32 px-6 flex justify-center overflow-hidden">
       <div
         className="absolute right-0 top-1/4 w-[600px] h-[600px] pointer-events-none"
         style={{ background: 'radial-gradient(circle at 80% 50%, rgba(135,200,245,0.05), transparent 65%)' }}
       />
       <div ref={ref} className="w-full max-w-3xl flex flex-col items-center relative">
-        <p className="font-inter text-white/40 text-xs tracking-[0.3em] uppercase text-center">
+        <p className="font-inter text-white/40 text-sm tracking-[0.3em] uppercase text-center">
           Product preview
         </p>
         <h2 className="font-instrument text-3xl md:text-5xl text-center text-white mt-4">
@@ -133,8 +224,8 @@ const BriefPreview = () => {
           style={{ transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)', transitionDelay: '150ms' }}
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <span className="font-inter text-white/40 text-xs tracking-wide">Daily Brief · 12 July 2026</span>
-            <span ref={indicatorRef} className="font-inter text-[11px] tracking-wide text-white/70 border border-white/15 rounded-full px-3 py-1 opacity-70">
+            <span className="font-inter text-white/40 text-sm tracking-wide">Daily Brief · 12 July 2026</span>
+            <span ref={indicatorRef} data-story-fg className="font-inter text-[13px] tracking-wide text-white/70 border border-white/15 rounded-full px-3 py-1 opacity-70">
               Indicator: border friction (elevated)
             </span>
           </div>
@@ -152,7 +243,7 @@ const BriefPreview = () => {
             />
             {blocks.map((b, index) => (
               <div key={b.label} ref={(el) => { blocksRef.current[index] = el; }}>
-                <div className="block-label font-inter text-white/40 text-[11px] font-semibold uppercase">
+                <div className="block-label font-inter text-white/40 text-[13px] font-semibold uppercase">
                   {b.label}
                 </div>
                 <p className="block-body font-inter text-white/75 text-sm leading-relaxed mt-2">{b.body}</p>
@@ -161,7 +252,7 @@ const BriefPreview = () => {
           </div>
 
           <div className="border-t border-white/10 mt-8 pt-5">
-            <p className="font-inter text-white/35 text-xs leading-relaxed">
+            <p className="font-inter text-white/35 text-sm leading-relaxed">
               Sources: PAP · Polish MSWiA statement · Belta (state media); corroboration: two independent, one state.
             </p>
           </div>

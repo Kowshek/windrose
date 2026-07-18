@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useContext } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 import { initMagnetic } from '../lib/hover';
+import { StoryContext } from '../lib/scroll';
 
 const ROLES = [
   'Student',
@@ -15,6 +16,7 @@ const ROLES = [
 ];
 
 const Waitlist = () => {
+  const story = useContext(StoryContext);
   const [email, setEmail] = useState('');
   const [role, setRole] = useState(ROLES[0]);
   const [submitted, setSubmitted] = useState(false);
@@ -31,7 +33,39 @@ const Waitlist = () => {
 
     mm.add("(prefers-reduced-motion: no-preference)", () => {
       if (!containerRef.current) return;
-      
+
+      if (story) {
+        // Story entrance: copy wipes up out of a blur, then the form controls
+        // build in sequence. Children only, so the wrapper stays free for
+        // Landing's parallax x and the fit-scale.
+        const text = containerRef.current.querySelectorAll(':scope > h2, :scope > p');
+        const controls = containerRef.current.querySelectorAll('input, select, button');
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: containerRef.current,
+            containerAnimation: story,
+            start: "left 82%",
+          },
+        });
+        tl.fromTo(text,
+          { opacity: 0, y: 26, filter: 'blur(6px)', clipPath: 'inset(0% 0% 100% 0%)' },
+          {
+            opacity: 1,
+            y: 0,
+            filter: 'blur(0px)',
+            clipPath: 'inset(0% 0% 0% 0%)',
+            duration: 0.8,
+            ease: "expo.out",
+            stagger: 0.1,
+          }
+        ).fromTo(controls,
+          { opacity: 0, y: 30 },
+          { opacity: 1, y: 0, duration: 0.85, ease: "expo.out", stagger: 0.09 },
+          0.25
+        );
+        return;
+      }
+
       gsap.fromTo(containerRef.current,
         { opacity: 0, y: 28, scale: 0.97 },
         {
@@ -52,7 +86,7 @@ const Waitlist = () => {
       mm.revert();
       cleanupBtn();
     };
-  }, []);
+  }, [story]);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -63,14 +97,14 @@ const Waitlist = () => {
   };
 
   return (
-    <section id="waitlist" className="relative w-full bg-[#05070d] pb-24 md:pb-32 px-6 flex justify-center overflow-hidden">
+    <section id="waitlist" className="relative w-full pb-24 md:pb-32 px-6 flex justify-center overflow-hidden">
       {/* Seam: resume from QuoteSection's final color and fade back to base */}
       <div
         className="absolute inset-x-0 top-0 h-40 pointer-events-none"
         style={{ background: 'linear-gradient(to bottom, #0E3350 0%, #05070d 100%)' }}
       />
       <div ref={containerRef} className="w-full max-w-xl flex flex-col items-center text-center relative pt-40 md:pt-48">
-        <h2 className="font-instrument text-3xl md:text-5xl text-white">
+        <h2 data-story-fg className="font-instrument text-3xl md:text-5xl text-white">
           Be reading it <span className="italic">at launch</span>
         </h2>
         <p className="font-inter text-white/60 text-sm md:text-base mt-5 leading-relaxed">

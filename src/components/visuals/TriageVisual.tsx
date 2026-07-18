@@ -84,7 +84,7 @@ const TriageVisual = () => {
           ))}
         </motion.div>
       </div>
-      <div className="flex justify-between font-inter text-[11px] text-white/45 mt-3 tracking-wide">
+      <div className="flex justify-between font-inter text-[13px] text-white/45 mt-3 tracking-wide">
         <span>the morning&rsquo;s feed</span>
         <span>your brief · 5–8 items</span>
       </div>

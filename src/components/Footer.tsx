@@ -9,15 +9,15 @@ const Footer = () => {
           Windrose
         </h3>
 
-        <p className="font-inter text-white/40 text-xs leading-relaxed max-w-2xl">
+        <p className="font-inter text-white/40 text-sm leading-relaxed max-w-2xl">
           Windrose provides informational analysis for research and education. It is not a duty-of-care, security, or emergency-notification service, and no completeness or real-time guarantee is made.
         </p>
 
-        <p className="font-inter text-white/30 text-xs leading-relaxed max-w-2xl">
+        <p className="font-inter text-white/30 text-sm leading-relaxed max-w-2xl">
           We collect your email only to send the brief and launch updates, never shared, never sold, unsubscribe anytime.
         </p>
 
-        <p className="font-inter text-white/20 text-xs mt-4">
+        <p className="font-inter text-white/20 text-sm mt-4">
           © 2026 Windrose. All rights reserved.
         </p>
       </div>

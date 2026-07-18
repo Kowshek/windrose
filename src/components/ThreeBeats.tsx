@@ -16,11 +16,15 @@ const EVENTS: SignalEvent[] = [
   { city: 'istanbul', title: 'Black Sea corridor review', date: 'Sep', level: 'elevated' },
 ];
 
+// Aperture reveal: cards open vertically out of a slight blur.
 const cardReveal = (reduced: boolean) => ({
-  hidden: reduced ? { opacity: 1, y: 0 } : { opacity: 0, y: 28 },
+  hidden: reduced
+    ? { opacity: 1, y: 0 }
+    : { opacity: 0, y: 28, filter: 'blur(6px)', clipPath: 'inset(12% 0% 12% 0%)' },
   show: {
     opacity: 1,
     y: 0,
+    ...(reduced ? {} : { filter: 'blur(0px)', clipPath: 'inset(0% 0% 0% 0%)' }),
     transition: { duration: reduced ? 0 : 0.9, ease: [0.22, 1, 0.36, 1] as const },
   },
 });
@@ -76,7 +80,7 @@ const SeeAheadPanel = () => {
                     isActive ? 'bg-white/[0.05]' : 'bg-transparent hover:bg-white/[0.03]'
                   }`}
                 >
-                  <span className="order-1 font-inter text-[11px] tabular-nums text-white/40 w-14 shrink-0">
+                  <span className="order-1 font-inter text-[13px] tabular-nums text-white/40 w-14 shrink-0">
                     {ev.date}
                   </span>
                   <span
@@ -87,7 +91,7 @@ const SeeAheadPanel = () => {
                     {ev.title}
                   </span>
                   <span
-                    className={`order-2 ml-auto sm:order-3 sm:ml-0 font-inter text-[10px] uppercase tracking-[0.14em] px-2 py-0.5 rounded-full border shrink-0 ${
+                    className={`order-2 ml-auto sm:order-3 sm:ml-0 font-inter text-[12px] uppercase tracking-[0.14em] px-2 py-0.5 rounded-full border shrink-0 ${
                       ev.level === 'elevated'
                         ? 'border-white/30 text-white/80'
                         : 'border-white/12 text-white/45'
@@ -124,7 +128,7 @@ const SeeAheadPanel = () => {
                     transition={{ duration: reduced ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
                   >
                     <div
-                      className="whitespace-nowrap rounded-full border border-white/15 bg-[#05070d]/85 backdrop-blur-sm px-3 py-1 font-inter text-[11px] text-white/80"
+                      className="whitespace-nowrap rounded-full border border-white/15 bg-[#05070d]/85 backdrop-blur-sm px-3 py-1 font-inter text-[13px] text-white/80"
                       style={{
                         transform: flip
                           ? 'translate(calc(-100% - 14px), -50%)'
@@ -214,7 +218,7 @@ const ThreeBeats = () => {
   const headingWords = ['Built', 'for', 'people', 'who', 'read', 'the', 'world', 'for', 'a', 'living'];
 
   return (
-    <section id="beats" className="relative w-full bg-[#05070d] py-24 md:py-32 px-6 flex justify-center overflow-hidden">
+    <section id="beats" className="relative w-full py-24 md:py-32 px-6 flex justify-center overflow-hidden">
       {/* Atmosphere echo from the hero's earth glow */}
       <div
         className="absolute inset-x-0 top-0 h-[420px] pointer-events-none"
@@ -222,6 +226,7 @@ const ThreeBeats = () => {
       />
       <div className="w-full max-w-6xl flex flex-col items-center relative">
         <h2
+          data-story-fg
           ref={headingRef}
           className="font-instrument text-3xl md:text-5xl text-center text-white mb-16 max-w-3xl flex flex-wrap justify-center gap-x-[0.25em]"
         >

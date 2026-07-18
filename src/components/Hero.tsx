@@ -64,6 +64,12 @@ const Hero = () => {
   const videoWrapperRef = useRef<HTMLDivElement>(null);
   const centerContentRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const uniBtnRef = useRef<HTMLAnchorElement>(null);
+  const navBrandRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (uniBtnRef.current) return initMagnetic(uniBtnRef.current);
+  }, []);
 
   useEffect(() => {
     const handleDismiss = () => {
@@ -101,6 +107,7 @@ const Hero = () => {
       gsap.to(centerContentRef.current, {
         y: -80,
         opacity: 0,
+        scale: 0.94,
         ease: 'none',
         scrollTrigger: {
           trigger: sectionRef.current,
@@ -120,6 +127,23 @@ const Hero = () => {
           scrub: true,
         }
       });
+
+      // Brand lockup starts oversized over the hero and docks into the navbar.
+      if (navBrandRef.current) {
+        gsap.fromTo(navBrandRef.current,
+          { scale: 1.4, transformOrigin: 'left center' },
+          {
+            scale: 1,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: 'top top',
+              end: 'bottom 60%',
+              scrub: true,
+            }
+          }
+        );
+      }
     });
 
     return () => mm.revert();
@@ -192,13 +216,19 @@ const Hero = () => {
       {/* Dark Overlay */}
       <div className="absolute inset-0 bg-black/20" />
 
+      {/* Bottom dissolve into the page base so the ticker reads as the same scene */}
+      <div
+        className="absolute inset-x-0 bottom-0 h-[38vh] pointer-events-none"
+        style={{ background: 'linear-gradient(to bottom, transparent, #05070d 92%)' }}
+      />
+
       {/* Navbar */}
       <nav
         className={`fixed top-0 left-0 right-0 z-[60] flex items-center justify-between px-6 md:px-12 py-5 border-b transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isScrolled ? 'bg-[#05070d]/70 backdrop-blur-md border-white/5' : 'border-transparent'
           } ${isBootDismissed ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'} motion-reduce:transition-none motion-reduce:opacity-100`}
         style={{ transitionDelay: isBootDismissed ? '100ms' : '0ms' }}
       >
-        <div className="flex items-center gap-2.5">
+        <div ref={navBrandRef} className="flex items-center gap-2.5">
           <WindroseMark className="w-6 h-6 md:w-7 md:h-7 text-white/90" />
           <span className="font-instrument italic text-white text-2xl md:text-3xl">Windrose</span>
         </div>
@@ -326,12 +356,12 @@ const Hero = () => {
           <Button href="#waitlist" className="w-full md:w-auto text-center">
             For individuals, join the waitlist
           </Button>
-          <a ref={(el) => { if (el) initMagnetic(el); }} href="#universities" onClick={(e) => handleSmoothScroll(e, '#universities')} className="liquid-glass text-white px-8 py-3.5 rounded-full font-medium text-sm tracking-wide hover:bg-white/10 transition-colors text-center w-full md:w-auto">
+          <a ref={uniBtnRef} href="#universities" onClick={(e) => handleSmoothScroll(e, '#universities')} className="liquid-glass text-white px-8 py-3.5 rounded-full font-medium text-sm tracking-wide hover:bg-white/10 transition-colors text-center w-full md:w-auto">
             For universities
           </a>
         </div>
         <p
-          className={`text-white/40 text-xs leading-relaxed mt-4 max-w-xs sm:max-w-none mx-auto font-inter text-center pointer-events-auto transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isBootDismissed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0`}
+          className={`text-white/40 text-sm leading-relaxed mt-4 max-w-xs sm:max-w-none mx-auto font-inter text-center pointer-events-auto transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isBootDismissed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0`}
           style={{ transitionDelay: isBootDismissed ? '360ms' : '0ms' }}
         >
           Students · journalists · analysts · think-tank&nbsp;researchers · NGO&nbsp;staff · educators
@@ -351,7 +381,7 @@ const Hero = () => {
             <path d="M6 1 V13 M1.5 8.5 L6 13 L10.5 8.5" stroke="rgba(255,255,255,0.6)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
           </motion.svg>
         </div>
-        <div className="text-white/60 text-xs flex flex-col tracking-wider uppercase">
+        <div className="text-white/60 text-sm flex flex-col tracking-wider uppercase">
           <span>The daily brief</span>
           <span>starts below</span>
         </div>

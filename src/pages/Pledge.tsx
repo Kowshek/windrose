@@ -58,7 +58,7 @@ const Pledge = () => {
 
         {/* Liquid-glass Card */}
         <div ref={cardRef} className="liquid-glass rounded-2xl p-8 md:p-10 w-full flex flex-col gap-6 text-left">
-          <div className="text-white/40 text-xs tracking-[0.3em] uppercase">
+          <div className="text-white/40 text-sm tracking-[0.3em] uppercase">
             Founding tier, first 50 members
           </div>
           
@@ -71,7 +71,7 @@ const Pledge = () => {
             Roughly 40% off the launch annual price, locked for life. Daily Brief, weekly assessment, events calendar, and the published methodology, from day one.
           </p>
 
-          <p className="font-inter text-white/35 text-xs leading-relaxed">
+          <p className="font-inter text-white/35 text-sm leading-relaxed">
             Founding pricing, confirmed at launch. Reserving costs nothing now, with no card or charge until the product is live.
           </p>
 
@@ -103,7 +103,7 @@ const Pledge = () => {
         </div>
 
         {/* Disclaimer */}
-        <p className="font-inter text-white/30 text-xs text-center max-w-lg mt-4 leading-relaxed">
+        <p className="font-inter text-white/30 text-sm text-center max-w-lg mt-4 leading-relaxed">
           Windrose provides informational analysis for research and education. It is not a duty-of-care, security, or emergency-notification service, and no completeness or real-time guarantee is made.
         </p>
 

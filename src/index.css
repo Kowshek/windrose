@@ -18,6 +18,92 @@
   box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
 }
 
+/* Shared world background: two slow-drifting Dawn Signal glows on a fixed
+   layer behind every section (sections are transparent over the page base).
+   Transform-only animation — compositor work, near-zero CPU. Alphas stay
+   ≤0.055 so text contrast is untouched. */
+.wr-world {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.wr-world-glow {
+  position: absolute;
+  width: 90vmax;
+  height: 90vmax;
+  border-radius: 9999px;
+  will-change: transform;
+}
+.wr-world-glow-a {
+  top: -35vmax;
+  left: -25vmax;
+  background: radial-gradient(circle, rgba(135, 200, 245, 0.055) 0%, transparent 60%);
+  animation: wr-world-a 70s ease-in-out infinite alternate;
+}
+.wr-world-glow-b {
+  bottom: -40vmax;
+  right: -25vmax;
+  background: radial-gradient(circle, rgba(200, 230, 255, 0.04) 0%, transparent 60%);
+  animation: wr-world-b 90s ease-in-out infinite alternate;
+}
+@keyframes wr-world-a {
+  to {
+    transform: translate3d(12vw, 8vh, 0) scale(1.15);
+  }
+}
+@keyframes wr-world-b {
+  to {
+    transform: translate3d(-10vw, -9vh, 0) scale(1.1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wr-world-glow {
+    animation: none;
+  }
+}
+
+/* Horizontal story (Landing): at >=1024px with motion allowed, the wrapper in
+   Landing.tsx pins the viewport while GSAP drives .story-track horizontally.
+   Outside this media block the classes are inert and the sections stack
+   vertically exactly as before. Must stay in lockstep with STORY_MEDIA in
+   Landing.tsx. */
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .story-track {
+    display: flex;
+    width: max-content;
+    will-change: transform;
+  }
+  .story-panel {
+    width: 100vw;
+    height: 100vh;
+  }
+  /* Panels overlap by 12vw so the next scene enters before the current one
+     leaves; sections are transparent and later panels paint on top. */
+  .story-panel + .story-panel {
+    margin-left: -12vw;
+  }
+  /* Panels center their section and compact the vertical-flow paddings.
+     overflow stays visible here so glows and parallax bleed across panel
+     boundaries — no hard edges. */
+  .story-panel > section {
+    height: 100%;
+    align-items: center;
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+    overflow: visible;
+  }
+  /* Waitlist's seam gradient + top clearance stitch it below QuoteSection in
+     vertical flow; side-by-side they'd read as a stray band. */
+  .story-panel #waitlist > div.absolute {
+    display: none;
+  }
+  .story-panel #waitlist > div:not(.absolute) {
+    padding-top: 2.5rem;
+  }
+}
+
 /* "On the radar" wire ticker: transform-only marquee, two identical halves
    so translateX(-50%) loops seamlessly. */
 .wr-ticker {
@@ -30,7 +116,7 @@
 }
 @keyframes wr-ticker-scroll {
   to {
-    transform: translateX(-50%);
+    transform: translate3d(-50%, 0, 0);
   }
 }
 .wr-ticker-mask {

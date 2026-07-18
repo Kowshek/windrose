@@ -1,9 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 import { initCardGlow, initMagnetic } from '../lib/hover';
+import { StoryContext } from '../lib/scroll';
 
 const Institutional = () => {
+  const story = useContext(StoryContext);
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLAnchorElement>(null);
@@ -20,7 +22,33 @@ const Institutional = () => {
 
     mm.add("(prefers-reduced-motion: no-preference)", () => {
       if (!containerRef.current) return;
-      
+
+      if (story) {
+        // Story entrance (the finale): the card settles in from a slight
+        // scale, then its content cascades. Targets the card and its children
+        // — never the wrapper, which Landing's parallax and fit-scale own.
+        if (!cardRef.current) return;
+        const tl = gsap.timeline({
+          scrollTrigger: {
+            trigger: containerRef.current,
+            containerAnimation: story,
+            start: "left 80%",
+          },
+        });
+        tl.fromTo(cardRef.current,
+          { opacity: 0, y: 48, scale: 0.95, clipPath: 'inset(0% 100% 0% 0% round 16px)' },
+          { opacity: 1, y: 0, scale: 1, clipPath: 'inset(0% 0% 0% 0% round 16px)', duration: 1.05, ease: "expo.out" }
+        ).fromTo(
+          // Semantic children only — initCardGlow appends a hover-glow overlay
+          // div whose opacity must stay under the hover rig's control.
+          cardRef.current.querySelectorAll(':scope > p, :scope > h2, :scope > a'),
+          { opacity: 0, y: 20, filter: 'blur(5px)' },
+          { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.8, ease: "power2.out", stagger: 0.07 },
+          0.18
+        );
+        return;
+      }
+
       gsap.fromTo(containerRef.current,
         { opacity: 0, y: 28, scale: 0.97 },
         {
@@ -42,17 +70,17 @@ const Institutional = () => {
       cleanupCard();
       cleanupBtn();
     };
-  }, []);
+  }, [story]);
 
   return (
-    <section id="universities" className="relative w-full bg-[#05070d] py-24 md:py-32 px-6 flex justify-center overflow-hidden">
+    <section id="universities" className="relative w-full py-24 md:py-32 px-6 flex justify-center overflow-hidden">
       <div
         className="absolute left-0 bottom-0 w-[600px] h-[500px] pointer-events-none"
         style={{ background: 'radial-gradient(circle at 20% 80%, rgba(135,200,245,0.05), transparent 65%)' }}
       />
       <div ref={containerRef} className="w-full max-w-3xl relative">
         <div ref={cardRef} className="liquid-glass rounded-2xl p-10 md:p-14 text-center">
-          <p className="font-inter text-white/40 text-xs tracking-[0.3em] uppercase">
+          <p data-story-fg className="font-inter text-white/40 text-sm tracking-[0.3em] uppercase">
             For universities
           </p>
           <h2 className="font-instrument text-white text-3xl md:text-[42px] mt-4 leading-tight">
@@ -69,7 +97,7 @@ const Institutional = () => {
           >
             Start a pilot conversation
           </a>
-          <p className="font-inter text-white/35 text-xs mt-5">
+          <p className="font-inter text-white/35 text-sm mt-5">
             We reply personally: this path is a conversation, not a checkout.
           </p>
         </div>

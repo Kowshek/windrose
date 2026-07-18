@@ -48,7 +48,7 @@ const MethodVisual = () => {
           <motion.span
             key={s}
             variants={fade(i * 0.12, 6)}
-            className="font-inter text-[10px] tracking-[0.12em] text-white/60 border border-white/15 rounded-full px-2.5 py-1 text-center"
+            className="font-inter text-[12px] tracking-[0.12em] text-white/60 border border-white/15 rounded-full px-2.5 py-1 text-center"
           >
             {s}
           </motion.span>
@@ -73,7 +73,7 @@ const MethodVisual = () => {
 
       {/* the score */}
       <div className="flex-1 min-w-0">
-        <motion.div variants={fade(1.05)} className="font-inter text-[10px] uppercase tracking-[0.2em] text-white/45">
+        <motion.div variants={fade(1.05)} className="font-inter text-[12px] uppercase tracking-[0.2em] text-white/45">
           Corroboration
         </motion.div>
         <div className="h-[3px] rounded-full bg-white/10 mt-2 overflow-hidden">
@@ -89,7 +89,7 @@ const MethodVisual = () => {
             }}
           />
         </div>
-        <motion.div variants={fade(1.25)} className="font-inter text-[11px] text-white/55 mt-1.5">
+        <motion.div variants={fade(1.25)} className="font-inter text-[13px] text-white/55 mt-1.5">
           two independent · one state
         </motion.div>
 
@@ -107,7 +107,7 @@ const MethodVisual = () => {
                   variants={drawCheck(1.5 + i * 0.15)}
                 />
               </svg>
-              <span className="font-inter text-[11px] text-white/60">{c}</span>
+              <span className="font-inter text-[13px] text-white/60">{c}</span>
             </motion.div>
           ))}
         </div>
