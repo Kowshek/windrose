@@ -179,6 +179,8 @@ const Landing = () => {
         track.removeEventListener('focusin', onFocusIn);
         ScrollTrigger.removeEventListener('refreshInit', fit);
         contents.forEach((c) => c && gsap.set(c, { clearProps: 'scale' }));
+        const fgs = track.querySelectorAll('[data-story-fg]');
+        if (fgs.length) gsap.set(fgs, { clearProps: 'all' });
         setStory(null);
         setStoryTween(null);
       };

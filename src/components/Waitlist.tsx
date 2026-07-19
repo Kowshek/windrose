@@ -103,11 +103,6 @@ const Waitlist = () => {
 
   return (
     <section id="waitlist" className="relative w-full lg:min-h-screen pb-20 md:pb-28 px-6 lg:px-12 flex items-center justify-center overflow-hidden">
-      {/* Seam: resume from QuoteSection's final color and fade back to base */}
-      <div
-        className="absolute inset-x-0 top-0 h-40 pointer-events-none"
-        style={{ background: 'linear-gradient(to bottom, #0E3350 0%, #05070d 100%)' }}
-      />
       {/* Split screen: the ask on the left, live radar proof on the right. */}
       <div ref={containerRef} className="w-full max-w-[1400px] relative pt-28 md:pt-44 lg:pt-0 lg:grid lg:grid-cols-[45fr_55fr] lg:gap-x-20 xl:gap-x-28 lg:items-center">
         <div>

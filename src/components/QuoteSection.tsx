@@ -241,7 +241,7 @@ const QuoteSection = () => {
       ref={sectionRef}
       className="relative w-full overflow-hidden flex items-center justify-center px-6 py-28 md:py-56"
       style={{
-        background: 'linear-gradient(to right, rgba(5,7,13,0) 0%, #04182B 25%, #0A2E4A 50%, #04182B 75%, rgba(5,7,13,0) 100%)'
+        background: 'radial-gradient(ellipse 50% 50% at 50% 50%, #0A2E4A 0%, #04182B 45%, rgba(5,7,13,0) 100%)'
       }}
     >
       {/* Horizon glow (parallax, replaces the old rainbow image) */}
@@ -317,7 +317,7 @@ const QuoteSection = () => {
 
       {/* Quote Content */}
       <div className="relative z-20 max-w-5xl text-center">
-        <p ref={textRef} className="font-instrument text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-[1.15] flex flex-wrap justify-center gap-y-2">
+        <p ref={textRef} className="font-instrument text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-[1.15] text-center">
           <span className="quote-word inline-block mr-[0.25em]">&ldquo;</span>
           {quoteWords.map((word, i) => (
             <span key={i} className="quote-word inline-block mr-[0.25em]">{word}</span>
@@ -326,12 +326,12 @@ const QuoteSection = () => {
         </p>
         <p
           ref={supportRef}
-          className="font-inter mt-8 text-white/60 text-sm md:text-base leading-[1.7] max-w-xl mx-auto"
+          className="font-inter mt-8 text-white/60 text-sm md:text-base leading-[1.7] max-w-xl mx-auto px-4"
         >
           Every item shows its sourcing, its confidence, and the indicators behind the call — a
           transparent scoring system with published criteria.
         </p>
-        <p ref={authorRef} data-story-fg className="font-inter mt-8 md:mt-10 text-white/80 text-sm md:text-base tracking-wide">
+        <p ref={authorRef} data-story-fg className="font-inter mt-8 md:mt-10 text-white/80 text-sm md:text-base tracking-wide max-w-xl mx-auto px-4">
           The Windrose method: published, scored, and open to challenge
         </p>
       </div>
