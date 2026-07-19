@@ -37,7 +37,7 @@ const WindroseMark = ({
 
     const tick = () => {
       // shortest-arc lerp so the needle never spins the long way round
-      let delta = ((target - current + 540) % 360) - 180;
+      const delta = ((target - current + 540) % 360) - 180;
       current += delta * 0.08;
       if (needleRef.current) {
         needleRef.current.style.transform = `rotate(${current.toFixed(2)}deg)`;
@@ -47,10 +47,11 @@ const WindroseMark = ({
 
     window.addEventListener('mousemove', onMove, { passive: true });
     frame = requestAnimationFrame(tick);
+    const needle = needleRef.current;
     return () => {
       window.removeEventListener('mousemove', onMove);
       cancelAnimationFrame(frame);
-      if (needleRef.current) needleRef.current.style.transform = '';
+      if (needle) needle.style.transform = '';
     };
   }, [trackCursor, reduced, inView]);
 

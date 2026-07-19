@@ -1,3 +1,6 @@
+import { useEffect, useState } from 'react';
+import SignalDot from './visuals/SignalDot';
+
 const ITEMS = [
   'Belarus border crossings — elevated',
   'EU Council · 24 Jul',
@@ -24,36 +27,37 @@ const TickerRow = ({ hidden = false }: { hidden?: boolean }) => (
  * Wire-service strip: what Windrose is watching right now. Pure CSS marquee
  * (transform-only), pauses on hover, static single line under reduced motion.
  */
-const RadarTicker = () => (
+const RadarTicker = () => {
+  // real clock, not simulation — the desk is on UTC
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+  const utc = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
+
+  return (
   <section
     aria-label="Currently monitoring"
-    className="group relative w-full border-y border-white/5 flex items-stretch overflow-hidden"
+    className="group wr-radar relative w-full border-y border-white/5 flex items-stretch overflow-hidden"
   >
-    <div className="shrink-0 flex items-center gap-2.5 pl-6 md:pl-12 pr-5 py-3 border-r border-white/5 bg-[#05070d] relative z-10">
-      <span className="relative flex w-2 h-2" aria-hidden="true">
-        <span
-          className="absolute inline-flex w-full h-full rounded-full opacity-60 animate-ping motion-reduce:animate-none"
-          style={{ background: 'radial-gradient(circle, rgba(200,230,255,0.9), rgba(135,200,245,0.4))' }}
-        />
-        <span
-          className="relative inline-flex w-2 h-2 rounded-full"
-          style={{
-            background: 'radial-gradient(circle, #ffffff 20%, rgba(200,230,255,0.8))',
-            boxShadow: '0 0 8px rgba(135,200,245,0.6)',
-          }}
-        />
-      </span>
+    <div className="shrink-0 flex items-center gap-2.5 pl-6 md:pl-12 pr-5 py-4 border-r border-white/5 bg-[#05070d] relative z-10">
+      <SignalDot className="w-2 h-2" />
       <span className="font-inter text-[13px] uppercase tracking-[0.25em] text-white/45 whitespace-nowrap">
         On the radar
       </span>
+      <span className="font-inter text-[11px] text-white/30 tabular-nums whitespace-nowrap">
+        {utc} UTC
+      </span>
     </div>
     <div className="relative flex-1 overflow-hidden wr-ticker-mask">
-      <div className="wr-ticker flex items-center py-3">
+      <div className="wr-ticker flex items-center py-4">
         <TickerRow />
         <TickerRow hidden />
       </div>
     </div>
   </section>
-);
+  );
+};
 
 export default RadarTicker;

@@ -53,6 +53,11 @@
         background: #ffffff;
         animation: bootFill 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
       }
+      @media (max-width: 767px) {
+        #boot-bar {
+          animation-duration: 0.6s;
+        }
+      }
       @keyframes bootPulse {
         0%, 100% { opacity: 1; }
         50% { opacity: 0.5; }

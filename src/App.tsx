@@ -25,8 +25,9 @@ function App() {
         window.dispatchEvent(new CustomEvent('boot-dismissed'));
       };
 
-      // Condition 2: 1200ms have elapsed since mount
-      const timer = setTimeout(dismissBoot, 1200);
+      // Condition 2: elapsed time since mount — shorter on phones, where a
+      // branded loading beat reads as friction, not craft.
+      const timer = setTimeout(dismissBoot, window.innerWidth < 768 ? 600 : 1200);
 
       const handleVideoLoaded = () => {
         clearTimeout(timer);

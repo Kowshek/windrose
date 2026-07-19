@@ -69,20 +69,22 @@ const Waitlist = () => {
         return;
       }
 
-      gsap.fromTo(containerRef.current,
-        { opacity: 0, y: 28, scale: 0.97 },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.9,
-          ease: "power2.out",
-          scrollTrigger: {
-            trigger: containerRef.current,
-            start: "top 85%",
-          }
-        }
-      );
+      // Vertical flow gets the same chapter build as the story: the ask is
+      // spoken first, then the form assembles under it.
+      const text = containerRef.current.querySelectorAll('.wl-copy');
+      const controls = containerRef.current.querySelectorAll('input, select, button');
+      gsap.timeline({
+        scrollTrigger: { trigger: containerRef.current, start: 'top 78%' },
+      })
+        .fromTo(text,
+          { opacity: 0, y: 26, filter: 'blur(6px)' },
+          { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.8, ease: 'expo.out', stagger: 0.12 }
+        )
+        .fromTo(controls,
+          { opacity: 0, y: 24 },
+          { opacity: 1, y: 0, duration: 0.85, ease: 'expo.out', stagger: 0.12 },
+          0.35
+        );
     });
 
     return () => {
@@ -107,12 +109,12 @@ const Waitlist = () => {
         style={{ background: 'linear-gradient(to bottom, #0E3350 0%, #05070d 100%)' }}
       />
       {/* Split screen: the ask on the left, live radar proof on the right. */}
-      <div ref={containerRef} className="w-full max-w-[1400px] relative pt-36 md:pt-44 lg:pt-0 lg:grid lg:grid-cols-[45fr_55fr] lg:gap-x-20 xl:gap-x-28 lg:items-center">
+      <div ref={containerRef} className="w-full max-w-[1400px] relative pt-28 md:pt-44 lg:pt-0 lg:grid lg:grid-cols-[45fr_55fr] lg:gap-x-20 xl:gap-x-28 lg:items-center">
         <div>
-          <h2 data-story-fg className="wl-copy font-instrument text-4xl md:text-6xl leading-[1.08] tracking-tight text-white">
+          <h2 data-story-fg className="wl-copy font-instrument text-4xl md:text-6xl xl:text-[72px] leading-[1.05] tracking-tight text-white">
             Be reading it <span className="italic">at launch</span>
           </h2>
-          <p className="wl-copy font-inter text-white/60 text-sm md:text-base mt-6 leading-relaxed max-w-md">
+          <p className="wl-copy font-inter text-white/60 text-base mt-8 leading-[1.7] max-w-md">
             Join the waitlist and the Daily Brief arrives the day we open. No spam: a short launch sequence and then the brief itself.
           </p>
 
@@ -166,13 +168,19 @@ const Waitlist = () => {
                   placeholder="you@example.com"
                   aria-label="Email address"
                   autoComplete="email"
-                  className="w-full bg-white/5 border border-white/15 rounded-full px-6 py-3.5 text-white text-sm placeholder:text-white/50 focus:outline-none focus:border-white/40 focus:shadow-[0_0_20px_rgba(255,255,255,0.08)] transition-all"
+                  className="w-full bg-white/5 border border-white/15 rounded-full px-6 py-3.5 text-white text-base sm:text-sm placeholder:text-white/50 focus:outline-none focus:border-white/40 focus:shadow-[0_0_20px_rgba(255,255,255,0.08)] transition-all"
                 />
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
                   aria-label="I am a"
-                  className="w-full bg-white/5 border border-white/15 rounded-full px-6 py-3.5 text-white text-sm focus:outline-none focus:border-white/40 focus:shadow-[0_0_20px_rgba(255,255,255,0.08)] transition-all appearance-none cursor-pointer"
+                  className="w-full bg-white/5 border border-white/15 rounded-full px-6 py-3.5 pr-12 text-white text-base sm:text-sm focus:outline-none focus:border-white/40 focus:shadow-[0_0_20px_rgba(255,255,255,0.08)] transition-all appearance-none cursor-pointer"
+                  style={{
+                    backgroundImage:
+                      "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' stroke='rgba(255,255,255,0.5)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\")",
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 1.5rem center',
+                  }}
                 >
                   {ROLES.map((r) => (
                     <option key={r} value={r} className="bg-[#05070d] text-white">
@@ -187,6 +195,9 @@ const Waitlist = () => {
                 >
                   Join the waitlist
                 </button>
+                <p className="wl-copy font-inter text-white/35 text-[13px] mt-1">
+                  Founding pricing at launch — within reach for a student.
+                </p>
               </motion.form>
             )}
           </AnimatePresence>

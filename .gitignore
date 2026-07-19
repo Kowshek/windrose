@@ -11,3 +11,7 @@ dist/
 .agents/
 .impeccable/
 skills-lock.json
+
+# Ignore documentation files
+*.md
+!README.md

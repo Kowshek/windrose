@@ -2,6 +2,50 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Intelligence visual grammar — shared primitives so every surface (ticker,
+   watchlist, brief rows, map labels, source chips) speaks one language.
+   Corroboration lines are always Dawn-Signal-pale hairlines, dash-drawn,
+   ≤0.2 opacity; detection is a pinging SignalDot; classification is .wr-level. */
+@layer components {
+  .wr-level {
+    @apply font-inter text-[12px] uppercase tracking-[0.14em] px-2 py-0.5 rounded-full border shrink-0;
+  }
+  .wr-chip {
+    @apply font-inter border border-white/15 rounded-full whitespace-nowrap;
+    background: rgba(5, 7, 13, 0.8);
+  }
+}
+
+/* Discoverable details — understated, found not announced. Hover-capable
+   pointers only; all off under reduced motion. */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .wr-level {
+    transition: letter-spacing 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  /* a classification badge eases open when its row is examined */
+  *:hover > .wr-level {
+    letter-spacing: 0.18em;
+  }
+  /* hovering the wire: the radar pings a touch faster */
+  .wr-radar:hover .animate-ping {
+    animation-duration: 0.9s;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  /* dormant map pins breathe slowly, each on its own phase */
+  .wr-pin {
+    animation: wr-breathe 4.5s ease-in-out infinite alternate;
+  }
+}
+@keyframes wr-breathe {
+  from {
+    fill-opacity: 0.35;
+  }
+  to {
+    fill-opacity: 0.6;
+  }
+}
+
 .liquid-glass {
   background: rgba(255, 255, 255, 0.02);
   backdrop-filter: blur(12px);
@@ -86,10 +130,22 @@
     width: 100vw;
     height: 100vh;
   }
-  /* Panels overlap by 12vw so the next scene enters before the current one
-     leaves; sections are transparent and later panels paint on top. */
+  /* Panels overlap so the next scene enters before the current one leaves;
+     sections are transparent and later panels paint on top. Overlaps are
+     deliberately unequal — pacing: a long approach into the method chapter
+     (the emotional center), then quick cuts through the asks. Dock positions
+     are read from offsetLeft in Landing.tsx, so these can change freely. */
   .story-panel + .story-panel {
     margin-left: -12vw;
+  }
+  .story-panel:nth-child(3) {
+    margin-left: -6vw; /* preview → method: linger */
+  }
+  .story-panel:nth-child(4) {
+    margin-left: -18vw; /* method → waitlist: quick cut */
+  }
+  .story-panel:nth-child(5) {
+    margin-left: -20vw; /* waitlist → universities: quickest */
   }
   /* Panels center their section and compact the vertical-flow paddings.
      overflow stays visible here so glows and parallax bleed across panel
@@ -114,6 +170,25 @@
   }
   .story-panel #waitlist > div:not(.absolute) {
     padding-top: 2.5rem;
+  }
+}
+
+/* Noise→signal cinema (NoiseToSignal.tsx): at >=768px with motion allowed the
+   section pins at 100vh and GSAP plays the headline collapse. Outside the
+   media block the cinema layers are gone and the resolved composition renders
+   in normal flow. Must stay in lockstep with SIGNAL_MEDIA in NoiseToSignal.tsx. */
+.sf-cinema {
+  display: none;
+}
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .sf-cinema {
+    display: block;
+  }
+  .sf-stage {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 }
 

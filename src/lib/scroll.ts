@@ -29,7 +29,12 @@ export function initSmoothScroll(): Lenis | null {
  * section is active so anchor navigation can map a panel's section id to the
  * scroll position that docks that panel.
  */
-let story: { trigger: ScrollTrigger; panelIds: string[] } | null = null;
+let story: {
+  trigger: ScrollTrigger;
+  panelIds: string[];
+  /** Scroll-progress fraction that docks each panel (unequal panel overlaps). */
+  dockFracs: number[];
+} | null = null;
 
 export function setStory(s: typeof story) {
   story = s;
@@ -49,7 +54,7 @@ export function storyPositionFor(id: string): number | null {
   const i = story.panelIds.indexOf(id);
   if (i < 0) return null;
   const st = story.trigger;
-  return st.start + ((st.end - st.start) * i) / (story.panelIds.length - 1);
+  return st.start + (st.end - st.start) * story.dockFracs[i];
 }
 
 /** Anchor scrolling routed through Lenis when active; story-aware while pinned. */

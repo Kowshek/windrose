@@ -111,8 +111,9 @@ const Hero = () => {
         ease: 'none',
         scrollTrigger: {
           trigger: sectionRef.current,
+          // quick cut: the opening clears fast, the film starts at the ticker
           start: 'top top',
-          end: 'bottom 40%',
+          end: 'bottom 55%',
           scrub: true,
         }
       });
@@ -148,6 +149,15 @@ const Hero = () => {
 
     return () => mm.revert();
   }, []);
+
+  // Body scroll lock while the mobile menu is open (no layout shift on
+  // mobile: there is no scrollbar gutter to lose).
+  useEffect(() => {
+    document.body.style.overflow = isMenuOpen ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isMenuOpen]);
 
   // Close mobile menu on resize and handle scroll state
   useEffect(() => {
@@ -187,7 +197,7 @@ const Hero = () => {
   };
 
   return (
-    <section ref={sectionRef} className="relative w-full h-screen overflow-hidden">
+    <section ref={sectionRef} className="relative w-full h-[100svh] overflow-hidden">
       {/* Background Video */}
       <div
         ref={videoWrapperRef}
@@ -201,15 +211,21 @@ const Hero = () => {
           loop
           playsInline
           preload="auto"
-          poster="/hero-poster.jpg"
           onLoadedData={handleVideoLoaded}
           className="absolute inset-0 w-full h-full object-cover"
           onError={(e) => {
             (e.target as HTMLVideoElement).style.display = 'none';
           }}
         >
-          {/* <source src="/hero.mp4" type="video/mp4" /> */}
-          <source src="https://res.cloudinary.com/vewxyxqu/video/upload/v1783964499/hero_capgqo.mp4" type="video/mp4" />
+          {/* phones get the 720p rendition (~180KB vs 14MB full-res) */}
+          <source
+            src={
+              window.innerWidth < 768
+                ? 'https://res.cloudinary.com/vewxyxqu/video/upload/q_auto,w_720/v1783964499/hero_capgqo.mp4'
+                : 'https://res.cloudinary.com/vewxyxqu/video/upload/v1783964499/hero_capgqo.mp4'
+            }
+            type="video/mp4"
+          />
         </video>
       </div>
 
@@ -254,9 +270,10 @@ const Hero = () => {
 
         {/* Mobile Menu Button */}
         <button
-          className="lg:hidden relative z-[60] w-6 h-5"
+          className="lg:hidden relative z-[60] w-6 h-5 after:absolute after:-inset-3 after:content-['']"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           aria-label="Toggle Menu"
+          aria-expanded={isMenuOpen}
         >
           <span
             className="w-full h-[2px] bg-white transition-all duration-300 absolute left-0"
@@ -285,6 +302,15 @@ const Hero = () => {
           />
         </button>
       </nav>
+
+      {/* Backdrop: dims the page behind the menu, tap to close */}
+      <div
+        className={`lg:hidden fixed inset-0 z-[54] bg-black/50 backdrop-blur-sm transition-opacity duration-500 ${
+          isMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setIsMenuOpen(false)}
+        aria-hidden="true"
+      />
 
       {/* Mobile Menu Panel */}
       <div
@@ -344,47 +370,38 @@ const Hero = () => {
           </span>
         </motion.h1>
         <p
-          className={`font-inter text-white/70 text-sm md:text-base text-center mt-5 md:mt-7 max-w-xl transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isBootDismissed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0`}
+          className={`font-inter text-white/70 text-base md:text-lg leading-relaxed text-center mt-7 md:mt-9 max-w-xl transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isBootDismissed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0`}
           style={{ transitionDelay: isBootDismissed ? '120ms' : '0ms' }}
         >
-          Analyst-grade monitoring of Europe, triaged, assessed, and sourced by a published methodology, at a price a student can pay.
+          Analyst-grade monitoring of Europe — triaged, assessed, and sourced by a published methodology, at a price a student can pay.
         </p>
         <div
-          className={`pointer-events-auto flex flex-col md:flex-row items-center gap-4 mt-6 md:mt-9 transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isBootDismissed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0`}
+          className={`pointer-events-auto flex flex-col md:flex-row items-center gap-4 mt-8 md:mt-11 transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isBootDismissed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0`}
           style={{ transitionDelay: isBootDismissed ? '240ms' : '0ms' }}
         >
           <Button href="#waitlist" className="w-full md:w-auto text-center">
-            For individuals, join the waitlist
+            Join the waitlist
           </Button>
           <a ref={uniBtnRef} href="#universities" onClick={(e) => handleSmoothScroll(e, '#universities')} className="liquid-glass text-white px-8 py-3.5 rounded-full font-medium text-sm tracking-wide hover:bg-white/10 active:scale-[0.98] transition-all duration-300 text-center w-full md:w-auto">
             For universities
           </a>
         </div>
-        <p
-          className={`text-white/40 text-sm leading-relaxed mt-4 max-w-xs sm:max-w-none mx-auto font-inter text-center pointer-events-auto transition-all duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] ${isBootDismissed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0`}
-          style={{ transitionDelay: isBootDismissed ? '360ms' : '0ms' }}
-        >
-          Students · journalists · analysts · think-tank&nbsp;researchers · NGO&nbsp;staff · educators
-        </p>
       </div>
 
       {/* Indicator */}
-      <div className="hidden md:flex absolute bottom-8 left-8 items-center gap-4 z-10 font-inter">
-        <div className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center overflow-hidden">
-          <motion.svg
-            viewBox="0 0 12 14"
-            className="w-3 h-3.5"
-            fill="none"
-            animate={reduced ? undefined : { y: [0, 3, 0] }}
-            transition={{ duration: 2.2, ease: 'easeInOut', repeat: Infinity }}
-          >
-            <path d="M6 1 V13 M1.5 8.5 L6 13 L10.5 8.5" stroke="rgba(255,255,255,0.6)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
-          </motion.svg>
-        </div>
-        <div className="text-white/60 text-sm flex flex-col tracking-wider uppercase">
-          <span>The daily brief</span>
-          <span>starts below</span>
-        </div>
+      <div className="hidden md:flex absolute bottom-10 left-10 items-center gap-3 z-10 font-inter">
+        <motion.svg
+          viewBox="0 0 12 14"
+          className="w-2.5 h-3"
+          fill="none"
+          animate={reduced ? undefined : { y: [0, 3, 0] }}
+          transition={{ duration: 2.2, ease: 'easeInOut', repeat: Infinity }}
+        >
+          <path d="M6 1 V13 M1.5 8.5 L6 13 L10.5 8.5" stroke="rgba(255,255,255,0.5)" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+        </motion.svg>
+        <span className="text-white/50 text-[13px] tracking-[0.18em] uppercase">
+          The daily brief starts below
+        </span>
       </div>
     </section>
   );

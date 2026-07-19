@@ -4,6 +4,7 @@ import ScrollTrigger from 'gsap/ScrollTrigger';
 import { initSmoothScroll, setStory, StoryContext } from '../lib/scroll';
 import Hero from '../components/Hero';
 import RadarTicker from '../components/RadarTicker';
+import NoiseToSignal from '../components/NoiseToSignal';
 import ThreeBeats from '../components/ThreeBeats';
 import BriefPreview from '../components/BriefPreview';
 import QuoteSection from '../components/QuoteSection';
@@ -11,6 +12,7 @@ import Waitlist from '../components/Waitlist';
 import Institutional from '../components/Institutional';
 import Footer from '../components/Footer';
 import ScrollProgress from '../components/ScrollProgress';
+import PointerLight from '../components/PointerLight';
 
 /** Media where the story pins and scrolls horizontally.
  *  Must stay in lockstep with the .story-track/.story-panel block in index.css. */
@@ -69,7 +71,7 @@ const Landing = () => {
       const distance = () => track.scrollWidth - window.innerWidth;
       const tween = gsap.to(track, {
         // Ratio of travel to track width; all vw-based, so it holds on resize
-        // (and stays correct with the panels' 12vw overlap).
+        // (and stays correct with the panels' unequal overlaps).
         xPercent: (-100 * distance()) / track.scrollWidth,
         ease: 'none',
         scrollTrigger: {
@@ -77,11 +79,16 @@ const Landing = () => {
           pin: true,
           scrub: 1,
           start: 'top top',
-          end: () => `+=${distance()}`,
+          // 1.3× travel: the story reads statelier than plain 1:1 px mapping.
+          end: () => `+=${distance() * 1.3}`,
           anticipatePin: 1,
           invalidateOnRefresh: true,
         },
       });
+
+      // Dock fraction per panel from real geometry — overlaps are unequal by
+      // design (film pacing), so equal spacing math would mis-dock.
+      const dockFrac = (i: number) => panels[i].offsetLeft / distance();
 
       // Two-layer parallax for depth. Content eases into dock (power1.out) and
       // accelerates out (power1.in) — the track itself must stay linear for
@@ -156,14 +163,16 @@ const Landing = () => {
         const i = panels.indexOf(panel as HTMLElement);
         const st = tween.scrollTrigger;
         if (i < 0 || !st) return;
-        if (Math.abs(st.progress - i / (panels.length - 1)) < 0.02) return;
-        initSmoothScroll()?.scrollTo(
-          st.start + ((st.end - st.start) * i) / (panels.length - 1)
-        );
+        if (Math.abs(st.progress - dockFrac(i)) < 0.02) return;
+        initSmoothScroll()?.scrollTo(st.start + (st.end - st.start) * dockFrac(i));
       };
       track.addEventListener('focusin', onFocusIn);
 
-      setStory({ trigger: tween.scrollTrigger!, panelIds: PANEL_IDS });
+      setStory({
+        trigger: tween.scrollTrigger!,
+        panelIds: PANEL_IDS,
+        dockFracs: panels.map((_, i) => dockFrac(i)),
+      });
       setStoryTween(tween);
 
       return () => {
@@ -186,10 +195,14 @@ const Landing = () => {
       <div className="wr-world" aria-hidden="true">
         <div className="wr-world-glow wr-world-glow-a" />
         <div className="wr-world-glow wr-world-glow-b" />
+        <PointerLight />
       </div>
       <ScrollProgress />
       <Hero />
       <RadarTicker />
+      {/* Signature moment: own vertical pin, independent of the story's
+          containerAnimation; sits between the feed (ticker) and the story. */}
+      <NoiseToSignal />
       <StoryContext.Provider value={storyTween}>
         <div ref={pinRef} className="relative overflow-x-clip">
           <div ref={trackRef} className="story-track">

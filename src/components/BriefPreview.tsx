@@ -73,6 +73,50 @@ const BriefPreview = () => {
         );
       }
 
+      // Vertical flow: the intro copy builds line by line before the card
+      // fades in below it (story mode has its own scrubbed version).
+      if (!story && ref.current) {
+        gsap.fromTo(
+          ref.current.querySelectorAll('.bp-intro'),
+          { opacity: 0, y: 24 },
+          {
+            opacity: 1,
+            y: 0,
+            stagger: 0.15,
+            duration: 0.9,
+            ease: 'power2.out',
+            scrollTrigger: { trigger: ref.current, start: 'top 78%' },
+          }
+        );
+      }
+
+      // The sources line is the receipt — it resolves last, after the blocks.
+      const sources = articleRef.current?.querySelector('.bp-sources');
+      if (sources) {
+        gsap.fromTo(
+          sources,
+          { opacity: 0 },
+          {
+            opacity: 1,
+            ease: 'none',
+            scrollTrigger: story
+              ? {
+                  trigger: sources,
+                  containerAnimation: story,
+                  start: 'left 50%',
+                  end: 'left 32%',
+                  scrub: 1,
+                }
+              : {
+                  trigger: sources,
+                  start: 'top 88%',
+                  end: 'top 72%',
+                  scrub: true,
+                },
+          }
+        );
+      }
+
       blocksRef.current.forEach((block, index) => {
         if (!block) return;
         const label = block.querySelector('.block-label');
@@ -201,7 +245,7 @@ const BriefPreview = () => {
   ];
 
   return (
-    <section id="preview" className="relative w-full lg:min-h-screen py-16 md:py-20 px-6 lg:px-12 flex items-center justify-center overflow-hidden">
+    <section id="preview" className="relative w-full lg:min-h-screen py-20 md:py-32 px-6 lg:px-12 flex items-center justify-center overflow-hidden">
       <div
         className="absolute right-0 top-1/4 w-[600px] h-[600px] pointer-events-none"
         style={{ background: 'radial-gradient(circle at 80% 50%, rgba(135,200,245,0.05), transparent 65%)' }}
@@ -214,11 +258,11 @@ const BriefPreview = () => {
           <p className="bp-intro font-inter text-white/40 text-xs tracking-[0.3em] uppercase">
             Product preview
           </p>
-          <h2 className="bp-intro font-instrument text-4xl md:text-5xl xl:text-[56px] leading-[1.08] tracking-tight text-white mt-6 max-w-xl lg:ml-auto">
-            One item from the <span className="italic">Daily Brief</span>
+          <h2 className="bp-intro font-instrument text-4xl md:text-5xl xl:text-[64px] leading-[1.05] tracking-tight text-white mt-5 max-w-xl lg:ml-auto">
+            One item from the <span className="italic pr-2">Daily Brief</span>
           </h2>
-          <p className="bp-intro font-inter text-white/50 text-sm mt-6">
-            Sample item, shown in the real format.
+          <p className="bp-intro font-inter text-white/50 text-sm mt-8">
+            Sample item, real format. Each morning&rsquo;s brief carries 5&ndash;8.
           </p>
         </div>
 
@@ -231,28 +275,28 @@ const BriefPreview = () => {
           />
         <article
           ref={articleRef}
-          className={`relative liquid-glass rounded-2xl p-10 md:p-14 w-full transition-all duration-[900ms] motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0 ${
+          className={`relative liquid-glass rounded-2xl p-6 sm:p-10 md:p-14 w-full transition-all duration-[900ms] motion-reduce:transition-none motion-reduce:opacity-100 motion-reduce:translate-y-0 ${
             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-[28px]'
           }`}
           style={{
             transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
-            transitionDelay: '150ms',
+            transitionDelay: '400ms',
             boxShadow:
               '0 40px 90px -25px rgba(0,0,0,0.6), 0 0 50px rgba(135,200,245,0.05), inset 0 1px 0 rgba(255,255,255,0.07)',
           }}
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
             <span className="font-inter text-white/40 text-sm tracking-wide">Daily Brief · 12 July 2026</span>
-            <span ref={indicatorRef} data-story-fg className="font-inter text-[13px] tracking-wide text-white/70 border border-white/15 rounded-full px-3 py-1 opacity-70">
+            <span ref={indicatorRef} data-story-fg className="wr-chip whitespace-normal sm:whitespace-nowrap text-[13px] tracking-wide text-white/70 px-3 py-1 opacity-70">
               Indicator: border friction (elevated)
             </span>
           </div>
 
-          <h3 className="font-instrument text-white text-2xl md:text-[34px] leading-snug mt-6">
+          <h3 className="font-instrument text-white text-2xl md:text-4xl leading-[1.25] mt-7">
             Poland tightens Belarus border regime ahead of transit talks
           </h3>
 
-          <div ref={blocksWrapRef} className="mt-8 space-y-7 relative pl-5">
+          <div ref={blocksWrapRef} className="mt-10 space-y-8 relative pl-5">
             <div
               ref={railRef}
               aria-hidden="true"
@@ -264,13 +308,13 @@ const BriefPreview = () => {
                 <div className="block-label font-inter text-white/40 text-[13px] font-semibold uppercase">
                   {b.label}
                 </div>
-                <p className="block-body font-inter text-white/75 text-sm leading-relaxed mt-2">{b.body}</p>
+                <p className="block-body font-inter text-white/75 text-[15px] leading-[1.7] mt-2.5 max-w-[60ch]">{b.body}</p>
               </div>
             ))}
           </div>
 
-          <div className="border-t border-white/10 mt-8 pt-5">
-            <p className="font-inter text-white/35 text-sm leading-relaxed">
+          <div className="bp-sources border-t border-white/10 mt-10 pt-6">
+            <p className="font-inter text-white/35 text-[13px] leading-relaxed max-w-[60ch]">
               Sources: PAP · Polish MSWiA statement · Belta (state media); corroboration: two independent, one state.
             </p>
           </div>

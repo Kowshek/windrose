@@ -21,13 +21,13 @@ const Cursor = () => {
     const onMouseMove = (e: MouseEvent) => {
       if (cursorRef.current) {
         cursorRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
+        cursorRef.current.style.opacity = '1';
       }
     };
 
     window.addEventListener('mousemove', onMouseMove, { passive: true, capture: true });
 
     return () => {
-      // @ts-ignore
       window.removeEventListener('mousemove', onMouseMove, { capture: true });
       document.head.removeChild(style);
       document.documentElement.style.cursor = '';
@@ -37,11 +37,13 @@ const Cursor = () => {
   return (
     <img 
       ref={cursorRef}
-      src="/cursor.png?v=7" 
-      alt="cursor"
+      src="/cursor.png?v=7"
+      alt=""
+      aria-hidden="true"
       className="fixed top-0 left-0 w-8 h-8 pointer-events-none z-[9999]"
-      style={{ 
+      style={{
         willChange: 'transform',
+        opacity: 0,
         filter: 'brightness(0) invert(1) drop-shadow(0px 0px 2px rgba(0,0,0,0.5))'
       }}
     />

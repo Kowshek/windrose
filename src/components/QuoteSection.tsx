@@ -30,6 +30,7 @@ const QuoteSection = () => {
   const leftGlowRef = useRef<HTMLDivElement>(null);
   const rightGlowRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLParagraphElement>(null);
+  const supportRef = useRef<HTMLParagraphElement>(null);
   const authorRef = useRef<HTMLParagraphElement>(null);
   const assemblyRef = useRef<HTMLDivElement>(null);
 
@@ -136,39 +137,47 @@ const QuoteSection = () => {
           }
         );
 
-        // The assembly: feeds fly in from the panel edges, corroboration
-        // lines draw to the assessment, then the whole layer recedes as the
-        // published words take over. Scrubbed — the reader's scroll runs the
-        // pipeline.
-        if (assemblyRef.current) {
-          const chips = assemblyRef.current.querySelectorAll('.mq-chip');
-          const lines = assemblyRef.current.querySelectorAll('.mq-line');
-          gsap.timeline({
-            scrollTrigger: {
-              trigger: sectionRef.current,
-              containerAnimation: story,
-              start: 'left 98%',
-              end: 'left 8%',
-              scrub: 1,
-            },
-          })
-            .fromTo(chips,
-              {
-                xPercent: -50,
-                yPercent: -50,
-                x: (i: number) => (i % 2 ? 200 : -200),
-                y: (i: number) => (i % 3) * 44 - 44,
-                opacity: 0,
+      }
+
+      // The assembly: feeds fly in from the edges, corroboration lines draw
+      // to the assessment, then the whole layer recedes as the published
+      // words take over. Scrubbed — the reader's scroll runs the pipeline.
+      // Runs in both modes; vertical flow reads progress from vertical scroll.
+      if (assemblyRef.current) {
+        const chips = assemblyRef.current.querySelectorAll('.mq-chip');
+        const lines = assemblyRef.current.querySelectorAll('.mq-line');
+        gsap.timeline({
+          scrollTrigger: story
+            ? {
+                trigger: sectionRef.current,
+                containerAnimation: story,
+                start: 'left 98%',
+                end: 'left 8%',
+                scrub: 1,
+              }
+            : {
+                trigger: sectionRef.current,
+                start: 'top 80%',
+                end: 'bottom 60%',
+                scrub: 1,
               },
-              { xPercent: -50, yPercent: -50, x: 0, y: 0, opacity: 1, stagger: 0.05, duration: 0.4, ease: 'power1.out' }
-            )
-            .fromTo(lines,
-              { strokeDasharray: 140, strokeDashoffset: 140, opacity: 0 },
-              { strokeDashoffset: 0, opacity: 1, stagger: 0.04, duration: 0.3, ease: 'none' },
-              0.22
-            )
-            .to([chips, lines], { opacity: 0.18, duration: 0.3, ease: 'none' }, 0.72);
-        }
+        })
+          .fromTo(chips,
+            {
+              xPercent: -50,
+              yPercent: -50,
+              x: (i: number) => (i % 2 ? 200 : -200),
+              y: (i: number) => (i % 3) * 44 - 44,
+              opacity: 0,
+            },
+            { xPercent: -50, yPercent: -50, x: 0, y: 0, opacity: 1, stagger: 0.05, duration: 0.4, ease: 'power1.out' }
+          )
+          .fromTo(lines,
+            { strokeDasharray: 140, strokeDashoffset: 140, opacity: 0 },
+            { strokeDashoffset: 0, opacity: 1, stagger: 0.04, duration: 0.3, ease: 'none' },
+            0.22
+          )
+          .to([chips, lines], { opacity: 0.18, duration: 0.3, ease: 'none' }, 0.72);
       }
 
       const words = textRef.current.querySelectorAll('.quote-word');
@@ -197,6 +206,11 @@ const QuoteSection = () => {
         stagger: 0.1,
         ease: 'none'
       })
+        .fromTo(supportRef.current,
+          { opacity: 0, y: 14 },
+          { opacity: 1, y: 0, ease: 'none' },
+          ">"
+        )
         .fromTo(authorRef.current,
           story
             ? { opacity: 0, y: 12, clipPath: 'inset(0% 100% 0% 0%)' }
@@ -216,14 +230,16 @@ const QuoteSection = () => {
     };
   }, [story]);
 
-  const quoteText = "Every item shows its sourcing, its confidence, and the indicators behind the call: a transparent scoring system with published criteria. The method is the product. No black box";
+  // The pull-quote is the eight words worth remembering; the sourcing detail
+  // reads as supporting body underneath, not display type.
+  const quoteText = "The method is the product. No black box.";
   const quoteWords = quoteText.split(' ');
 
   return (
     <section
       id="method"
       ref={sectionRef}
-      className="relative w-full overflow-hidden flex items-center justify-center px-6 py-40 md:py-56"
+      className="relative w-full overflow-hidden flex items-center justify-center px-6 py-28 md:py-56"
       style={{
         background: 'linear-gradient(to right, rgba(5,7,13,0) 0%, #04182B 25%, #0A2E4A 50%, #04182B 75%, rgba(5,7,13,0) 100%)'
       }}
@@ -264,9 +280,13 @@ const QuoteSection = () => {
         }}
       />
 
-      {/* Source assembly layer (story mode only): the method, performed */}
-      {story && (
-        <div ref={assemblyRef} aria-hidden="true" className="absolute inset-0 z-[15] pointer-events-none">
+      {/* Source assembly layer: the method, performed. Hidden under reduced
+          motion — without the timeline the chips would sit as static clutter. */}
+      <div
+        ref={assemblyRef}
+        aria-hidden="true"
+        className="absolute inset-0 z-[15] pointer-events-none motion-reduce:hidden hidden sm:block"
+      >
           <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
             {FEEDS.map((f) => (
               <line
@@ -277,8 +297,9 @@ const QuoteSection = () => {
                 x2={50}
                 y2={52}
                 stroke="#c8e6ff"
-                strokeOpacity="0.14"
+                strokeOpacity="0.16"
                 strokeWidth="1"
+                opacity="0"
                 vectorEffect="non-scaling-stroke"
               />
             ))}
@@ -286,25 +307,31 @@ const QuoteSection = () => {
           {FEEDS.map((f) => (
             <span
               key={f.n}
-              className="mq-chip absolute font-inter text-[11px] tracking-[0.12em] text-white/55 border border-white/15 rounded-full px-2.5 py-1 whitespace-nowrap"
-              style={{ left: `${f.x}%`, top: `${f.y}%`, background: 'rgba(5,7,13,0.7)' }}
+              className="mq-chip wr-chip absolute text-[11px] tracking-[0.12em] text-white/55 px-2.5 py-1"
+              style={{ left: `${f.x}%`, top: `${f.y}%`, opacity: 0 }}
             >
               {f.n}
             </span>
           ))}
         </div>
-      )}
 
       {/* Quote Content */}
-      <div className="relative z-20 max-w-4xl text-center">
-        <p ref={textRef} className="font-instrument text-white text-xl sm:text-2xl md:text-4xl lg:text-[42px] leading-[1.45] md:leading-[1.5] flex flex-wrap justify-center gap-y-2">
+      <div className="relative z-20 max-w-5xl text-center">
+        <p ref={textRef} className="font-instrument text-white text-3xl sm:text-4xl md:text-5xl lg:text-6xl leading-[1.15] flex flex-wrap justify-center gap-y-2">
           <span className="quote-word inline-block mr-[0.25em]">&ldquo;</span>
           {quoteWords.map((word, i) => (
             <span key={i} className="quote-word inline-block mr-[0.25em]">{word}</span>
           ))}
           <span className="quote-word inline-block">&rdquo;</span>
         </p>
-        <p ref={authorRef} data-story-fg className="font-inter mt-6 md:mt-8 text-white/80 text-sm md:text-base tracking-wide">
+        <p
+          ref={supportRef}
+          className="font-inter mt-8 text-white/60 text-sm md:text-base leading-[1.7] max-w-xl mx-auto"
+        >
+          Every item shows its sourcing, its confidence, and the indicators behind the call — a
+          transparent scoring system with published criteria.
+        </p>
+        <p ref={authorRef} data-story-fg className="font-inter mt-8 md:mt-10 text-white/80 text-sm md:text-base tracking-wide">
           The Windrose method: published, scored, and open to challenge
         </p>
       </div>

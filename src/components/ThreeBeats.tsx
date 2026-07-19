@@ -15,16 +15,50 @@ const EVENTS: SignalEvent[] = [
   { city: 'istanbul', title: 'Black Sea corridor review', date: 'Sep', level: 'elevated' },
 ];
 
-// Aperture reveal: blocks open vertically out of a slight blur.
-const cardReveal = (reduced: boolean) => ({
-  hidden: reduced
-    ? { opacity: 1, y: 0 }
-    : { opacity: 0, y: 28, filter: 'blur(6px)', clipPath: 'inset(12% 0% 12% 0%)' },
+// Chapter pacing: each element enters on its own beat instead of the whole
+// block at once. Text leads, data rows follow one by one, visuals resolve last.
+const fadeUp = (reduced: boolean, delay = 0) => ({
+  hidden: reduced ? { opacity: 1, y: 0 } : { opacity: 0, y: 24, filter: 'blur(6px)' },
   show: {
     opacity: 1,
     y: 0,
-    ...(reduced ? {} : { filter: 'blur(0px)', clipPath: 'inset(0% 0% 0% 0%)' }),
-    transition: { duration: reduced ? 0 : 0.9, ease: [0.22, 1, 0.36, 1] as const },
+    ...(reduced ? {} : { filter: 'blur(0px)' }),
+    transition: { duration: reduced ? 0 : 0.85, delay: reduced ? 0 : delay, ease: [0.22, 1, 0.36, 1] as const },
+  },
+});
+
+// Delayed visual: settles out of a blur after the copy has landed.
+const visualReveal = (reduced: boolean, delay = 0.45) => ({
+  hidden: reduced ? { opacity: 1 } : { opacity: 0, scale: 0.97, filter: 'blur(10px)' },
+  show: {
+    opacity: 1,
+    ...(reduced ? {} : { scale: 1, filter: 'blur(0px)' }),
+    transition: { duration: reduced ? 0 : 1.1, delay: reduced ? 0 : delay, ease: [0.22, 1, 0.36, 1] as const },
+  },
+});
+
+/** Orchestrator wrapper: carries whileInView, children own their variants. */
+const chapter = { hidden: {}, show: {} };
+
+// Watchlist semantics: an event row is a log entry appended to the feed —
+// it slides in from the margin, no blur, like a line being written.
+const logEntry = (reduced: boolean, delay = 0) => ({
+  hidden: reduced ? { opacity: 1, x: 0 } : { opacity: 0, x: -16 },
+  show: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: reduced ? 0 : 0.6, delay: reduced ? 0 : delay, ease: [0.22, 1, 0.36, 1] as const },
+  },
+});
+
+// Classification stamp: the level badge lands after its row exists — the
+// entry is logged first, then triaged.
+const stamp = (reduced: boolean, delay = 0) => ({
+  hidden: reduced ? { opacity: 1 } : { opacity: 0, scale: 1.3 },
+  show: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: reduced ? 0 : 0.35, delay: reduced ? 0 : delay, ease: [0.22, 1, 0.36, 1] as const },
   },
 });
 
@@ -35,17 +69,49 @@ const SeeAheadPanel = () => {
   const inView = useInView(panelRef, { amount: 0.35 });
   const [active, setActive] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [events, setEvents] = useState<SignalEvent[]>([...EVENTS]);
+  const [flashed, setFlashed] = useState<number | null>(null);
+  const started = useRef(false);
 
   useEffect(() => {
     if (!inView || paused || reduced) return;
-    const id = setInterval(() => setActive((i) => (i + 1) % EVENTS.length), 3800);
+    const id = setInterval(() => setActive((i) => (i + 1) % events.length), 3800);
     return () => clearInterval(id);
-  }, [inView, paused, reduced]);
+  }, [inView, paused, reduced, events.length]);
+
+  // Scripted intel updates — deterministic and one-shot, not random: the desk
+  // raises a level, narrows a window, then a new indicator surfaces (and its
+  // pin appears on the map). Runs once per visit, starting when first seen.
+  useEffect(() => {
+    if (!inView || started.current) return;
+    started.current = true;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const flash = (i: number) => {
+      setFlashed(i);
+      timers.push(setTimeout(() => setFlashed(null), 1600));
+    };
+    const patch = (i: number, p: Partial<SignalEvent>) => {
+      setEvents((e) => e.map((ev, j) => (j === i ? { ...ev, ...p } : ev)));
+      flash(i);
+    };
+    timers.push(
+      setTimeout(() => patch(2, { level: 'elevated' }), 9000),
+      setTimeout(() => patch(2, { date: '6–9 d' }), 21000),
+      setTimeout(() => {
+        setEvents((e) => [
+          ...e,
+          { city: 'chisinau', title: 'Campaign finance rules tightened', date: 'New', level: 'watch' },
+        ]);
+        flash(5);
+      }, 32000)
+    );
+    return () => timers.forEach(clearTimeout);
+  }, [inView]);
 
   return (
     <motion.div
       ref={panelRef}
-      variants={cardReveal(!!reduced)}
+      variants={chapter}
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, amount: 0.2 }}
@@ -53,33 +119,39 @@ const SeeAheadPanel = () => {
     >
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] gap-10 lg:gap-16 items-center">
         <div>
-          <h3 className="font-instrument text-white text-2xl md:text-3xl">
+          <motion.h3 variants={fadeUp(!!reduced)} className="font-instrument text-white text-3xl md:text-4xl">
             See <span className="italic">ahead</span>
-          </h3>
-          <p className="font-inter text-white/60 text-sm leading-relaxed mt-4 max-w-md">
+          </motion.h3>
+          <motion.p variants={fadeUp(!!reduced, 0.15)} className="font-inter text-white/60 text-[15px] leading-[1.7] mt-5 max-w-md">
             The events calendar and risk map show what is coming, not just what broke: summits,
             elections, deadlines, flashpoints.
-          </p>
+          </motion.p>
 
           <div
             className="mt-8 flex flex-col"
             onMouseEnter={() => setPaused(true)}
             onMouseLeave={() => setPaused(false)}
           >
-            {EVENTS.map((ev, i) => {
+            {events.map((ev, i) => {
               const isActive = i === active;
               return (
-                <button
+                <motion.button
                   key={ev.city}
+                  variants={logEntry(!!reduced, 0.3 + i * 0.09)}
                   type="button"
                   aria-pressed={isActive}
                   onClick={() => setActive(i)}
                   onFocus={() => setActive(i)}
-                  className={`flex flex-wrap sm:flex-nowrap items-center gap-x-3 text-left w-full rounded-xl px-3 py-2.5 -mx-3 transition-colors duration-300 ${
+                  onMouseEnter={() => setActive(i)}
+                  className={`flex flex-wrap sm:flex-nowrap items-center gap-x-3 text-left w-full rounded-xl px-3 py-3 sm:py-2.5 -mx-3 transition-colors duration-300 ${
                     isActive ? 'bg-white/[0.05]' : 'bg-transparent hover:bg-white/[0.03]'
                   }`}
                 >
-                  <span className="order-1 font-inter text-[13px] tabular-nums text-white/40 w-14 shrink-0">
+                  <span
+                    className={`order-1 font-inter text-[13px] tabular-nums w-14 shrink-0 transition-colors duration-700 ${
+                      flashed === i ? 'text-white/90' : 'text-white/40'
+                    }`}
+                  >
                     {ev.date}
                   </span>
                   <span
@@ -89,28 +161,34 @@ const SeeAheadPanel = () => {
                   >
                     {ev.title}
                   </span>
-                  <span
-                    className={`order-2 ml-auto sm:order-3 sm:ml-0 font-inter text-[12px] uppercase tracking-[0.14em] px-2 py-0.5 rounded-full border shrink-0 ${
-                      ev.level === 'elevated'
+                  <motion.span
+                    variants={stamp(!!reduced, 0.62 + i * 0.09)}
+                    className={`order-2 ml-auto sm:order-3 sm:ml-0 wr-level transition-colors duration-700 ${
+                      flashed === i
+                        ? 'border-white/60 text-white'
+                        : ev.level === 'elevated'
                         ? 'border-white/30 text-white/80'
                         : 'border-white/12 text-white/45'
                     }`}
                   >
                     {ev.level}
-                  </span>
-                </button>
+                  </motion.span>
+                </motion.button>
               );
             })}
           </div>
         </div>
 
         <div className="order-first lg:order-last flex justify-center">
-          <div className="relative w-full max-w-[300px] sm:max-w-[360px] lg:max-w-[440px]">
-            <EuropeSignalMap events={EVENTS} active={active} live={inView} className="w-full" />
+          <motion.div
+            variants={visualReveal(!!reduced, 0.55)}
+            className="relative w-full max-w-[300px] sm:max-w-[360px] lg:max-w-[440px]"
+          >
+            <EuropeSignalMap events={events} active={active} live={inView} className="w-full" />
             {/* floating label pinned to the active signal (desktop) */}
             <AnimatePresence mode="wait">
               {(() => {
-                const pos = CITIES[EVENTS[active].city];
+                const pos = CITIES[events[active].city];
                 if (!pos) return null;
                 const flip = pos[0] > MAP_W * 0.55;
                 return (
@@ -127,20 +205,20 @@ const SeeAheadPanel = () => {
                     transition={{ duration: reduced ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
                   >
                     <div
-                      className="whitespace-nowrap rounded-full border border-white/15 bg-[#05070d]/85 backdrop-blur-sm px-3 py-1 font-inter text-[13px] text-white/80"
+                      className="wr-chip backdrop-blur-sm px-3 py-1 text-[13px] text-white/80"
                       style={{
                         transform: flip
                           ? 'translate(calc(-100% - 14px), -50%)'
                           : 'translate(14px, -50%)',
                       }}
                     >
-                      {EVENTS[active].title}
+                      {events[active].title}
                     </div>
                   </motion.div>
                 );
               })()}
             </AnimatePresence>
-          </div>
+          </motion.div>
         </div>
       </div>
     </motion.div>
@@ -163,17 +241,22 @@ const Beat = ({
 
   return (
     <motion.div
-      variants={cardReveal(!!reduced)}
+      variants={chapter}
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, amount: 0.25 }}
       className="flex flex-col h-full"
     >
-      {children}
-      <h3 className="font-instrument text-white text-2xl md:text-[28px] mt-auto pt-6">
+      {/* the visual resolves after the words have made the claim */}
+      <motion.div variants={visualReveal(!!reduced)} className="min-h-[180px]">
+        {children}
+      </motion.div>
+      <motion.h3 variants={fadeUp(!!reduced)} className="font-instrument text-white text-2xl md:text-[32px] pt-6">
         {title} <span className="italic">{titleItalic}</span>
-      </h3>
-      <p className="font-inter text-white/60 text-sm leading-relaxed mt-3 max-w-md">{body}</p>
+      </motion.h3>
+      <motion.p variants={fadeUp(!!reduced, 0.15)} className="font-inter text-white/60 text-[15px] leading-[1.7] mt-4 max-w-md">
+        {body}
+      </motion.p>
     </motion.div>
   );
 };
@@ -212,7 +295,7 @@ const ThreeBeats = () => {
   const headingWords = ['Built', 'for', 'people', 'who', 'read', 'the', 'world', 'for', 'a', 'living'];
 
   return (
-    <section id="beats" className="relative w-full pt-28 pb-36 md:pt-36 md:pb-48 px-6 lg:px-12 flex justify-center overflow-hidden">
+    <section id="beats" className="relative w-full pt-20 pb-28 md:pt-36 md:pb-48 px-6 lg:px-12 flex justify-center overflow-hidden">
       {/* Atmosphere echo from the hero's earth glow */}
       <div
         className="absolute inset-x-0 top-0 h-[420px] pointer-events-none"
@@ -221,13 +304,10 @@ const ThreeBeats = () => {
       {/* Editorial split: sticky heading rail left, the three beats right. */}
       <div className="w-full max-w-[1400px] relative lg:grid lg:grid-cols-[35fr_65fr] lg:gap-x-20 xl:gap-x-28 lg:items-start">
         <div className="lg:sticky lg:top-32 lg:self-start mb-12 lg:mb-0">
-          <p className="font-inter text-white/40 text-xs tracking-[0.3em] uppercase">
-            Why Windrose
-          </p>
           <h2
             data-story-fg
             ref={headingRef}
-            className="font-instrument text-3xl md:text-5xl xl:text-[54px] leading-[1.12] tracking-tight text-white mt-6 flex flex-wrap gap-x-[0.25em]"
+            className="font-instrument text-4xl md:text-5xl xl:text-[64px] leading-[1.05] tracking-tight text-white flex flex-wrap gap-x-[0.25em]"
           >
             {headingWords.map((w, i) => (
               <span key={i} className="word inline-block">
@@ -238,9 +318,9 @@ const ThreeBeats = () => {
           </h2>
         </div>
 
-        <div className="flex flex-col gap-16 md:gap-20">
+        <div className="flex flex-col gap-16 md:gap-24">
           <SeeAheadPanel />
-          <div className="grid md:grid-cols-2 gap-x-12 gap-y-12">
+          <div className="grid md:grid-cols-2 gap-x-16 gap-y-14">
             <Beat
               title="Stop drowning in"
               titleItalic="headlines"
